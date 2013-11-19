@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+
+<!--
+
+  You must:
+   * have JAVA_HOME set to a recent JDK 6 installation
+   * have JAVA5_HOME set to a recent JDK 1.5.0 installation
+   * have unzipped $JAVA_HOME/src.zip to $JAVA_HOME/src
+   * specify -Drelease=03 (for example) on the ant command line
+
+-->
+
+<project name="guava" default="compile">
+
+  <property environment="env"/>
+
+  <!-- can be overridden at the command line with -Drelease=
+       or in IDEA, in the ant properties dialog -->
+  <property name="release" value="SNAPSHOT"/>
+
+  <target name="compile" description="Compile Java source.">
+    <mkdir dir="build/classes"/>
+
+    <property name="java5bootclasspath" value="${env.JAVA5_HOME}/jre/lib/rt.jar"/>
+
+    <available file="${java5bootclasspath}" property="isJava5HomeSetRight"/>
+    <fail unless="isJava5HomeSetRight" 
+          message="JAVA5_HOME must be set to a valid JDK 1.5 installation, containing a jre/lib/rt.jar file"/>
+
+    <javac srcdir="src"
+         debug="on"
+         destdir="build/classes"
+         source="1.5"
+         target="1.5"
+         bootclasspath="${java5bootclasspath}"
+         extdirs="">
+      <compilerarg value="-Xlint:all"/>
+      <classpath>
+        <pathelement location="lib/jsr305.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="jar" depends="compile" description="Build jar.">
+    <mkdir dir="build/dist/guava-r${release}"/>
+    <jar jarfile="build/dist/guava-r${release}/guava-r${release}.jar">
+      <fileset dir="build/classes"/>
+    </jar>
+  </target>
+
+  <target name="javadoc" description="Generate Javadocs.">
+    <delete dir="build/javadoc"/>
+    <mkdir dir="build/javadoc"/>
+
+    <javadoc packagenames="com.google.common.annotations,com.google.common.base,com.google.common.collect,com.google.common.io,com.google.common.primitives,com.google.common.util.concurrent"
+         destdir="build/javadoc"
+         use="true"
+         author="true"
+         protected="true"
+         windowtitle="Guava: Google Core Libraries for Java - release ${release}">
+      <sourcepath>
+        <pathelement location="src"/>
+        <pathelement location="/home/kevinb/latestjavadocs"/> <!-- I know, I know... -->
+      </sourcepath>
+      <!-- workaround for http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6442982 -->
+      <classpath>
+        <pathelement location="lib/jsr305.jar"/>
+      </classpath>
+      <link href="http://jsr-305.googlecode.com/svn/trunk/javadoc"/>
+      <link href="http://java.sun.com/javase/6/docs/api"/>
+    </javadoc>
+  </target>
+
+  <target name="jdiff" description="Generate JDiff report">
+    <mkdir dir="build/javadoc/jdiff"/>
+    <javadoc doclet="jdiff.JDiff"
+         docletpath="../../trunk/lib/jdiff.jar"
+         additionalparam="-apiname guava -apidir build/javadoc/jdiff"
+         packagenames="com.google.common.*"
+         destdir="build/javadoc/jdiff">
+      <sourcepath>
+        <pathelement location="src"/>
+      </sourcepath>
+      <classpath>
+        <pathelement location="lib/jsr305.jar"/>
+      </classpath>
+    </javadoc>
+
+    <!-- remove dumb comments inserted by jdiff so that we only see svn diffs when things actually change. -->
+    <replaceregexp match="^.!--\s+(on|Command line arguments) .* -->$\n" 
+        replace="" flags="gm" file="build/javadoc/jdiff/guava.xml"/>
+  </target>
+
+  <target name="zipsrc" description="Build zip of source.">
+    <mkdir dir="build/dist/guava-r${release}"/>
+    <jar jarfile="build/dist/guava-r${release}/guava-src-r${release}.zip">
+      <fileset dir="src"/>
+    </jar>
+  </target>
+
+  <target name="dist" depends="jar, zipsrc, javadoc"
+       description="Build entire distribution.">
+    <copy toDir="build/dist/guava-r${release}" file="COPYING"/>
+    <copy toDir="build/dist/guava-r${release}" file="README"/>
+    <copy toDir="build/dist/guava-r${release}">
+      <fileset dir="build" includes="javadoc/**/*"/>
+    </copy>
+
+    <zip destfile="build/guava-r${release}.zip"
+      basedir="build/dist"/>
+  </target>
+
+  <target name="clean"
+      description="Remove generated files.">
+    <delete dir="build"/>
+  </target>
+
+</project>
