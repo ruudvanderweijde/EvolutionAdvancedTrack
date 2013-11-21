@@ -13,14 +13,9 @@ import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
+@doc {
+}
 public void run() {
-	//m3Model1 = createM3FromEclipseProject(|project://UnitTest1|);
-	//m3Model2 = createM3FromEclipseProject(|project://UnitTest2|);
-	//m3Model3 = createM3FromEclipseProject(|project://UnitTest3|);
-	//m3Model4 = createM3FromEclipseProject(|project://UnitTest4|);
-	//m3Model5 = createM3FromEclipseProject(|project://UnitTest5|);
-	//result = compareM3Models([m3Model1, m3Model2, m3Model3, m3Model4, m3Model5]);
-	
 	m3Model1 = createM3FromEclipseProject(|project://GuavaRelease01|);
 	m3Model2 = createM3FromEclipseProject(|project://GuavaRelease02|);
 	m3Model3 = createM3FromEclipseProject(|project://GuavaRelease03|);
@@ -28,35 +23,24 @@ public void run() {
 	
 	for (x <- result) {
 		println("-------[ <x> ]-------");
-		iprintln(result[x]);
+		for (y <- result[x]) {
+			iprintln("<y>: <size(result[x][y])>");
+		}
 	}
-	//iprintln(m3Model);
-	
-	//tree(m3Model@modifiers);
-	//iprintln(methods(myModel));
-	//methodLoc = |java+method:///hello/world/World/main(java.lang.String%5B%5D)|;
-	//tree(getMethodASTEclipse(methodLoc));
-	//iprintln(tst);
-	
-	//tree(tst);
-	//iprintln(visAST(tst));
-	//visit(tst) {
-	//	case Declaration: println("decl");
-	//	case x:\method(_,str n,_,_,_): println("methodName: <x>");
-	//	//default: println("test");
-	//}
-	
 }
 
-//public map[str, map[str, list[loc]]] compareM3Models(list[M3] models) {
-public map[str, map[str, int]] compareM3Models(list[M3] models) {
+@doc { This function returns the differences between a list of M3 models }
+public map[str, map[str, set[loc]]] compareM3Models(list[M3] models) {
 	// precondition
 	if (size(models) < 2) { throw "Precondition failed. Need more than 2 models to compare"; }
 	
 	resultMap = ();
+	
 	for (int index <- [0..size(models)-1]) {
+	
 		model1 = models[index];
 		model2 = models[index+1];
+		
 		publicMethods1 = getPublicMethodsForModel(model1);
 		publicMethods2 = getPublicMethodsForModel(model2);
 		
@@ -67,12 +51,12 @@ public map[str, map[str, int]] compareM3Models(list[M3] models) {
 		publicFields2 = getPublicFieldsForModel(model2);
 		
 		resultMap += ("diff between <model1.id> and <model2.id>": (
-			"methods removed":  size(publicMethods1 - publicMethods2),
-			"methods added":	size(publicMethods2 - publicMethods1),
-			"classes removed":  size(publicClasses1 - publicClasses2),
-			"classes added":	size(publicClasses2 - publicClasses1),
-			"fields removed":  	size(publicFields1 - publicFields2),
-			"fields added":		size(publicFields2 - publicFields1)
+			"methods_removed":  publicMethods1 - publicMethods2,
+			"methods_added":	publicMethods2 - publicMethods1,
+			"classes_removed":  publicClasses1 - publicClasses2,
+			"classes_added":	publicClasses2 - publicClasses1,
+			"fields_removed":  	publicFields1 - publicFields2,
+			"fields_added":		publicFields2 - publicFields1
 		));
 	}
 	return resultMap;
