@@ -42,8 +42,8 @@ public void run() {
 
 public void readablePrint(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[loc] ma, set[loc] mr, set[loc] fa, set[loc] fr] diff) {
 	// print header
-	println("\t\t\t\t\t\t\t\tclasses\t\tmethods\t\tfields");
-	println("from\t\t\t\tto\t\t\t\t+\t-\t+\t-\t+\t-\t");
+	println("<tabs(8,0)>classes<tabs(2,7)>methods<tabs(2,7)>fields");
+	println("from<tabs(4,4)>to<tabs(4,2)>+\t-\t+\t-\t+\t-\t");
 	str io = "";
 	for (x <- diff) {
 		io += "<x.from>"		+ tabs(4, size("<x.from>"));
@@ -58,7 +58,9 @@ public void readablePrint(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[l
 	}
 	println(io);
 }
-public str tabs(int tabs, int size) {
+
+@doc { used in print function to see how many tabs are needed }
+private str tabs(int tabs, int size) {
 	str string = "";
 	int n = (8*tabs)-size;
 	do { 
@@ -69,37 +71,35 @@ public str tabs(int tabs, int size) {
 }
 		
 @doc { This function returns the differences between a list of M3 models }
-@memo
 public lrel[loc, loc, set[loc], set[loc], set[loc], set[loc], set[loc], set[loc]] compareM3Models(list[M3] models) {
 	// precondition
 	if (size(models) < 2) { throw "Precondition failed. Need more than 2 models to compare"; }
 	
-	lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[loc] ma, set[loc] mr, set[loc] fa, set[loc] fr] diff = [];
-	
-	for (int index <- [0..size(models)-1]) {
-	
-		model1 = models[index];
-		model2 = models[index+1];
+	return {	
+		for (int index <- [0..size(models)-1]) {
 		
-		publicMethods1 = getPublicMethodsForModel(model1);
-		publicMethods2 = getPublicMethodsForModel(model2);
+			M3 model1 = models[index];
+			M3 model2 = models[index+1];
+			
+			set[loc] publicMethods1 = getPublicMethodsForModel(model1);
+			set[loc] publicMethods2 = getPublicMethodsForModel(model2);
+			
+			set[loc] publicClasses1 = getPublicClassesForModel(model1);
+			set[loc] publicClasses2 = getPublicClassesForModel(model2);
+			
+			set[loc] publicFields1 = getPublicFieldsForModel(model1);
+			set[loc] publicFields2 = getPublicFieldsForModel(model2);
 		
-		publicClasses1 = getPublicClassesForModel(model1);
-		publicClasses2 = getPublicClassesForModel(model2);
-		
-		publicFields1 = getPublicFieldsForModel(model1);
-		publicFields2 = getPublicFieldsForModel(model2);
-	
-		diff += (<model1.id,
-				  model2.id,
-				  publicFields2 - publicFields1,
-				  publicFields1 - publicFields2,
-				  publicClasses2 - publicClasses1,
-				  publicClasses1 - publicClasses2,
-				  publicMethods2 - publicMethods1,
-				  publicMethods1 - publicMethods2>);
+			append(<model1.id,							// loc from
+					model2.id,							// loc to
+					publicClasses2 - publicClasses1,	// set[loc] ca - classes added
+					publicClasses1 - publicClasses2,	// set[loc] cr - classes removed
+					publicMethods2 - publicMethods1,	// set[loc] ma - methods added
+					publicMethods1 - publicMethods2,	// set[loc] mr - methods removed
+					publicFields2 - publicFields1,		// set[loc] fa - fields added
+					publicFields1 - publicFields2>);	// set[loc] fr - fields removed
+		}
 	}
-	return diff;
 }
 
 public set[loc] getPublicMethodsForModel(M3 model) {
