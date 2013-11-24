@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="guava/versions/01/src"/>
+	<classpathentry kind="src" path="guava/versions/02/src"/>
+	<classpathentry kind="src" path="guava/versions/03/src"/>
+	<classpathentry kind="src" path="guava/versions/14.1/src"/>
+	<classpathentry kind="src" path="guava/versions/14/src"/>
+	<classpathentry kind="src" path="guava/versions/15/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
