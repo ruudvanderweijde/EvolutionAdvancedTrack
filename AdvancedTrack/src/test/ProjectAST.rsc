@@ -3,10 +3,6 @@ module \test::ProjectAST
 import IO;
 import List;
 import Set;
-import String;
-import DateTime;
-
-import ValueIO;
 
 import vis::Figure;
 import vis::Render;
@@ -17,18 +13,24 @@ import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
-@logLevel {
-	Log level 0 => no logging;
-	Log level 1 => main logging;
-	Log level 2 => debug logging;
-}
-private int logLevel = 1;
+data Change = transition(loc old, loc new) | addition(loc new) | deletion(loc old);
+data VersionTransition = versionTransition(str oldVersion,
+										   str newVersion,
+										   list[Change] classChanges, 
+										   list[Change] methodChanges, 
+										   list[Change] fieldChanges);
 
-@doc { }
-public void logMessage(str message, int level) {
-	if (level <= logLevel) {
-		str date = printDate(now(), "Y-MM-dd HH:mm:ss");
-		println("<date> :: <message>");
+public void run() {
+	M3 m3Model1 = createM3FromEclipseProject(|project://GuavaRelease01|);
+	M3 m3Model2 = createM3FromEclipseProject(|project://GuavaRelease02|);
+	M3 m3Model3 = createM3FromEclipseProject(|project://GuavaRelease03|);
+	list[VersionTransition] transitions = compareM3Models([m3Model1, m3Model2, m3Model3]);
+	
+	for (VersionTransition transition <- transitions) {
+		println("-------[ <transition> ]-------");
+		//for (y <- result[transition]) {
+		//	iprintln("<y>: <size(result[x][y])>");
+		//}
 	}
 }
 
@@ -126,13 +128,6 @@ public void printImage(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[loc]
 	//render(ovl);
 }
 
-public void tst() {	
-	result = compareM3Models([	createM3FromEclipseProject(|project://UnitTest1|),
-								createM3FromEclipseProject(|project://UnitTest5|)]);
-	iprintln(result);
-	readablePrint(result);
-}
-
 public void readablePrint(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[loc] ma, set[loc] mr, set[loc] fa, set[loc] fr] diff) {
 	// print header
 	println("<tabs(8,0)>classes<tabs(2,7)>methods<tabs(2,7)>fields");
@@ -149,50 +144,73 @@ public void readablePrint(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[l
 		io += "<size(x.fr)>" 	+ "\t";
 		io += "\n";
 	}
-	println(io);
 }
-
-@doc { used in print function to see how many tabs are needed }
-private str tabs(int tabs, int size) {
-	str string = "";
-	int n = (8*tabs)-size;
-	do { 
-		string += "\t"; 
-		n -= 8; 
-	} while (n > 0);
-	return string;
-}
-		
 @doc { This function returns the differences between a list of M3 models }
-public lrel[loc, loc, set[loc], set[loc], set[loc], set[loc], set[loc], set[loc]] compareM3Models(list[M3] models) {
+public list[VersionTransition] compareM3Models(list[M3] models) {
 	// precondition
 	if (size(models) < 2) { throw "Precondition failed. Need more than 2 models to compare"; }
 	
-	return {	
-		for (int index <- [0..size(models)-1]) {
-		
-			M3 model1 = models[index];
-			M3 model2 = models[index+1];
-			
-			set[loc] publicMethods1 = getPublicMethodsForModel(model1);
-			set[loc] publicMethods2 = getPublicMethodsForModel(model2);
-			
-			set[loc] publicClasses1 = getPublicClassesForModel(model1);
-			set[loc] publicClasses2 = getPublicClassesForModel(model2);
-			
-			set[loc] publicFields1 = getPublicFieldsForModel(model1);
-			set[loc] publicFields2 = getPublicFieldsForModel(model2);
-		
-			append(<model1.id,							// loc from
-					model2.id,							// loc to
-					publicClasses2 - publicClasses1,	// set[loc] ca - classes added
-					publicClasses1 - publicClasses2,	// set[loc] cr - classes removed
-					publicMethods2 - publicMethods1,	// set[loc] ma - methods added
-					publicMethods1 - publicMethods2,	// set[loc] mr - methods removed
-					publicFields2 - publicFields1,		// set[loc] fa - fields added
-					publicFields1 - publicFields2>);	// set[loc] fr - fields removed
+	list[VersionTransition] changes = [];
+	
+	for (int index <- [0..size(models)-1]) {
+		M3 model1 = models[index];
+		M3 model2 = models[index+1];
+		changes += getVersionTransition(model1, model2);
+	}
+	return changes;
+}
+
+private VersionTransition getVersionTransition(M3 old, M3 new) {
+	//Changed classes can be derived from changed methods and fields.
+	list[Change] methodChanges = getMethodChanges(old, new);
+	list[Change] fieldChanges = getFieldChanges(old, new);
+	
+	//TODO: derive changed classes
+	//	set[loc] publicClasses1 = getPublicClassesForModel(old);
+	//	set[loc] publicClasses2 = getPublicClassesForModel(new);
+	list[Change] classChanges = [];
+	
+	//TODO: deduce version numbers
+	str oldVersion = "mockup-old";
+	str newVersion = "mockup-new";
+	
+	return versionTransition(oldVersion, newVersion, classChanges, methodChanges, fieldChanges);
+}
+
+private list[Change] getMethodChanges(M3 old, M3 new) {
+	set[loc] publicMethods1 = getPublicMethodsForModel(old);
+	set[loc] publicMethods2 = getPublicMethodsForModel(new);
+	
+	list[Change] methodTransitions = [];
+	set[loc] changedMethods = {};
+	for (loc method <- publicMethods1) {
+		if (method in publicMethods2) {
+			//Unchanged.
+			methodTransitions += transition(method, method);
+		} else if (false) {
+			//TODO: implement changed signature
+			//Multiple changes possible?
+			//versionChanges += transition(method, newMethod);
+			changedMethods += method;
+		} else {
+			//It was deleted.
+			methodTransitions += deletion(method);
 		}
 	}
+	
+	set[loc] addedMethods = publicMethods2 - publicMethods1 - changedMethods;
+	for (loc addedMethod <- addedMethods) {
+		methodTransitions += addition(addedMethod);
+	}
+	
+	return methodTransitions;
+}
+
+private list[Change] getFieldChanges(M3 old, M3 new) {
+	//TODO: implement
+	//set[loc] publicFields1 = getPublicFieldsForModel(old);
+	//set[loc] publicFields2 = getPublicFieldsForModel(new);
+	return [];
 }
 
 public set[loc] getPublicMethodsForModel(M3 model) {
