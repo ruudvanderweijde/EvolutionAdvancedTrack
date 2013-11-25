@@ -4,6 +4,8 @@ import IO;
 import List;
 import Set;
 
+import ValueIO;
+
 import vis::Figure;
 import vis::Render;
 
@@ -36,19 +38,19 @@ public void run() {
 
 public list[loc] projects = [
 							|project://GuavaRelease01|,
-							|project://GuavaRelease02|,
-							|project://GuavaRelease03|,
-							|project://GuavaRelease05|,
-							|project://GuavaRelease06|,
-							|project://GuavaRelease07|,
-							|project://GuavaRelease08|,
-							|project://GuavaRelease09|,
-							|project://GuavaRelease10.0|,
-							|project://GuavaRelease11.0|,
-							|project://GuavaRelease12.0|,
-							|project://GuavaRelease13.0|,
-							|project://GuavaRelease14.0|,
-							|project://GuavaRelease14.0.1|,
+							//|project://GuavaRelease02|,
+							//|project://GuavaRelease03|,
+							//|project://GuavaRelease05|,
+							//|project://GuavaRelease06|,
+							//|project://GuavaRelease07|,
+							//|project://GuavaRelease08|,
+							//|project://GuavaRelease09|,
+							//|project://GuavaRelease10.0|,
+							//|project://GuavaRelease11.0|,
+							//|project://GuavaRelease12.0|,
+							//|project://GuavaRelease13.0|,
+							//|project://GuavaRelease14.0|,
+							//|project://GuavaRelease14.0.1|,
 							|project://GuavaRelease15.0|
 							];
 							
