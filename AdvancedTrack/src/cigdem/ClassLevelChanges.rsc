@@ -24,10 +24,8 @@ public void findClassLevelChanges(loc oldProject, loc newProject) {
 	oldModel = createM3FromEclipseProject(oldProject);
 	newModel = createM3FromEclipseProject(newProject);
 	loc exampleClass = |java+class:///MyHelloWorld|;
-	set [Modifiers] oldModifiers = getSetOfModifiersPerClass(oldModel, exampleClass) ;
-	set [Modifiers] newModifiers = getSetOfModifiersPerClass(newModel, exampleClass) ;
-	
-		
+	set [Modifier] oldModifiers = getSetOfModifiersPerClass(oldModel, exampleClass) ;
+	set [Modifier] newModifiers = getSetOfModifiersPerClass(newModel, exampleClass) ;
 	
 }
 
