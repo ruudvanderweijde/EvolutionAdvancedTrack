@@ -35,7 +35,7 @@ public void run() {
 }
 
 public list[loc] projects = [
-							//|project://GuavaRelease01|,
+							|project://GuavaRelease01|,
 							|project://GuavaRelease02|,
 							|project://GuavaRelease03|,
 							|project://GuavaRelease05|,
@@ -48,13 +48,13 @@ public list[loc] projects = [
 							|project://GuavaRelease12.0|,
 							|project://GuavaRelease13.0|,
 							|project://GuavaRelease14.0|,
-							|project://GuavaRelease14.0.1|
-							//|project://GuavaRelease15.0|
+							|project://GuavaRelease14.0.1|,
+							|project://GuavaRelease15.0|
 							];
 							
 @doc {
 }
-public void run() {
+public void run2() {
 	logMessage("Retrieving M3 models...", 1);
 	list[M3] models = getM3Models(projects);
 
@@ -69,26 +69,22 @@ public void run() {
 	//writeTextValueFile(|project://AdvancedTrack/data/test.txt|, io);
 }
 
+@doc { get a list of M3 models from file system }
 public list[M3] getM3Models(list[loc] projects) {
 	return {
 		for (project <- projects) {
-			append(readTextValueFile(|project://AdvancedTrack/m3/<project>|));
+			append(readBinaryValueFile(|project://AdvancedTrack/m3/|+"<project.authority>.bin.m3"));
 		}	
 	}
 }
 
+@doc { write m3 models to file system as binary files }
 public void writeM3Models(list[loc] projects) {
 	for (project <- projects) {
-		writeTextValueFile(|project://AdvancedTrack/m3/|+"<project.authority>.m3", createM3FromEclipseProject(project));
 		writeBinaryValueFile(|project://AdvancedTrack/m3/|+"<project.authority>.bin.m3", createM3FromEclipseProject(project));
 	}
 }
 
-public void writeM3ModelsBinary(list[loc] projects) {
-	for (project <- projects) {
-		writeBinaryValueFile(|project://AdvancedTrack/m3/|+"<project.authority>.bin.m3", createM3FromEclipseProject(project));
-	}
-}
 public void printImage(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[loc] ma, set[loc] mr, set[loc] fa, set[loc] fr] diff) {
 	map[str, num] total = ("ca":0,"cr":0,"ma":0,"mr":0,"fa":0,"fr":0);
 	for (x <- diff) {
