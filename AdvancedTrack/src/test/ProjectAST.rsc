@@ -22,19 +22,6 @@ data VersionTransition = versionTransition(str oldVersion,
 										   list[Change] methodChanges, 
 										   list[Change] fieldChanges);
 
-public void run() {
-	M3 m3Model1 = createM3FromEclipseProject(|project://GuavaRelease01|);
-	M3 m3Model2 = createM3FromEclipseProject(|project://GuavaRelease02|);
-	M3 m3Model3 = createM3FromEclipseProject(|project://GuavaRelease03|);
-	list[VersionTransition] transitions = compareM3Models([m3Model1, m3Model2, m3Model3]);
-	
-	for (VersionTransition transition <- transitions) {
-		println("-------[ <transition> ]-------");
-		//for (y <- result[transition]) {
-		//	iprintln("<y>: <size(result[x][y])>");
-		//}
-	}
-}
 
 public list[loc] projects = [
 							|project://GuavaRelease01|,
@@ -53,6 +40,18 @@ public list[loc] projects = [
 							//|project://GuavaRelease14.0.1|,
 							|project://GuavaRelease15.0|
 							];
+							
+public void run() {
+	list[M3] models = getM3Models(projects);
+	list[VersionTransition] transitions = compareM3Models(models);
+	
+	for (VersionTransition transition <- transitions) {
+		println("-------[ <transition> ]-------");
+		//for (y <- result[transition]) {
+		//	iprintln("<y>: <size(result[x][y])>");
+		//}
+	}
+}
 							
 @doc {
 }
