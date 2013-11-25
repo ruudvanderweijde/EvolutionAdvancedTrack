@@ -3,6 +3,8 @@ module \test::ProjectAST
 import IO;
 import List;
 import Set;
+import String;
+import DateTime;
 
 import ValueIO;
 
@@ -41,6 +43,21 @@ public list[loc] projects = [
 							|project://GuavaRelease15.0|
 							];
 							
+@logLevel {
+	Log level 0 => no logging;
+	Log level 1 => main logging;
+	Log level 2 => debug logging;
+}
+private int logLevel = 1;
+
+@doc { }
+public void logMessage(str message, int level) {
+	if (level <= logLevel) {
+		str date = printDate(now(), "Y-MM-dd HH:mm:ss");
+		println("<date> :: <message>");
+	}
+}
+
 public void run() {
 	list[M3] models = getM3Models(projects);
 	list[VersionTransition] transitions = compareM3Models(models);
