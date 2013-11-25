@@ -1,0 +1,20 @@
+Methodes die van signature wijzigen worden als change gezien. Maar als er bijvoorbeeld een nieuwe overloaded functie bij komt
+dan lijkt dit me een addition.
+
+public int getRandomInteger() {
+  ...
+}
+
+naar:
+
+public int getRandomInteger() {
+  ...
+}
+
+en
+
+public int getRandomInteger() {
+  ...
+}
+
+is geen change maar een addition
