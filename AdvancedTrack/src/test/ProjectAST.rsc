@@ -18,8 +18,8 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
 data Change = transition(loc old, loc new) | addition(loc new) | deletion(loc old);
-data VersionTransition = versionTransition(str oldVersion,
-										   str newVersion,
+data VersionTransition = versionTransition(loc oldVersion,
+										   loc newVersion,
 										   list[Change] classChanges, 
 										   list[Change] methodChanges, 
 										   list[Change] fieldChanges);
@@ -80,8 +80,9 @@ public void run2() {
 	result = compareM3Models(models);
 	
 	logMessage("Printing table.", 1);
-	readablePrint(result);
-	printImage(result);
+	iprintln(result);
+	//readablePrint(result);
+	//printImage(result);
 	
 	//logMessage("Done.", 1);
 	//writeTextValueFile(|project://AdvancedTrack/data/test.txt|, io);
@@ -185,8 +186,8 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	list[Change] classChanges = [];
 	
 	//TODO: deduce version numbers
-	str oldVersion = "mockup-old";
-	str newVersion = "mockup-new";
+	loc oldVersion = old.id;
+	loc newVersion = new.id;
 	
 	return versionTransition(oldVersion, newVersion, classChanges, methodChanges, fieldChanges);
 }
