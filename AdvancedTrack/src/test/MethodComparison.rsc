@@ -26,13 +26,15 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 			changedMethods += method;
 		} else {
 			//It was deleted.
-			methodTransitions += deletion(method);
+			//methodTransitions += deletion(method);
+			int i = 0;
 		}
 	}
 	
 	set[loc] addedMethods = publicMethods2 - publicMethods1 - changedMethods;
 	for (loc addedMethod <- addedMethods) {
-		methodTransitions += addition(addedMethod);
+		//methodTransitions += addition(addedMethod);
+		int i = 0;
 	}
 	
 	return methodTransitions;
