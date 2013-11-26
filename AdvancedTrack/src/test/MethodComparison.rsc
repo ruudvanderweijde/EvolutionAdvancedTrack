@@ -28,7 +28,7 @@ data MethodSignature = nil()
 // represents a parameter without considering its name
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
-data MethodNameGroup = methodNameGroup(str name, set[MethodSignature] methods);
+data MethodNameGroup = nilGroup() | methodNameGroup(str name, set[MethodSignature] methods);
 
 data MethodChange = transition(MethodNameGroup old, MethodNameGroup new) | addition(MethodNameGroup new) | deletion(MethodNameGroup old);
 
@@ -43,11 +43,19 @@ public MethodSignature convertDeclarationToSignature(Declaration decl) {
 	return signature;
 }
 
-public bool isNil(MethodSignature signature) {
+private bool isNil(MethodSignature signature) {
 	visit (signature) {
 		case nil(): return true;
 	};
 
+	return false;
+}
+
+private bool isNil(MethodNameGroup methodNameGroup) {
+	visit(methodNameGroup) {
+		case nilGroup(): return true;
+	}
+	
 	return false;
 }
 
@@ -131,16 +139,15 @@ private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
 			str methodName = methodDeclaration.name;
 			
 			MethodSignature signature = methodSignature(methodName, [], methodDeclaration.\return, methodLocator, methodDeclaration.parameters, methodDeclaration.exceptions);
-			MethodNameGroup group;
+			MethodNameGroup group = nilGroup();
 			bool found = false;
 			for (MethodNameGroup methodNameGroup <- methodNameGroups) {
 				if (methodNameGroup.name == methodName) {
 					group = methodNameGroup;
-					found = true;
 					break;
 				}
 			}
-			if (!found) {
+			if (isNil(group)) {
 				group = methodNameGroup(methodName, {});
 			}
 			methodNameGroups = methodNameGroups - {group};
