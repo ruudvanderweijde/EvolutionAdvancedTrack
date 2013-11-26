@@ -8,6 +8,7 @@ import IO;
 import List;
 import Set;
 import Type;
+import String;
 
 import vis::Figure;
 import vis::Render;
@@ -20,12 +21,73 @@ import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 
 // represents a method signature
-data MethodSignature = methodSignature(str name, list[Modifier] modifiers, TypeSymbol returnType, loc location, list[Declaration] params, list[Expression] exceptions);
+data MethodSignature = nil() 
+					   | methodSignature(str name, list[Modifier] modifiers, TypeSymbol returnType, loc location, list[Declaration] params, list[Expression] exceptions)
+					   | constructorSignature(str name, list[Modifier] modifiers, loc location, list[Declaration] params, list[Expression] exceptions);
+
 // represents a parameter without considering its name
-data NamelessParameter = namelessParameter(Type \type, int extraDimensions);
+data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
 data MethodNameGroup = methodNameGroup(str name, set[MethodSignature] methods);
+
 data MethodChange = transition(MethodNameGroup old, MethodNameGroup new) | addition(MethodNameGroup new) | deletion(MethodNameGroup old);
+
+public MethodSignature convertDeclarationToSignature(Declaration decl) {
+	MethodSignature signature = nil();
+	visit(decl) {
+		case \constructor(str name, list[Declaration] parameters, list[Expression] exceptions, _): signature = nil();
+		case \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, _): signature = nil();
+		case \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions): signature = nil();
+	}
+
+	return signature;
+}
+
+public bool isNil(MethodSignature signature) {
+	visit (signature) {
+		case nil(): return true;
+	};
+
+	return false;
+}
+
+
+public bool checkSignatureChange(MethodSignature signatureA, MethodSignature signatureB, bool considerParameterNames) {
+	if (isNil(signatureA) || isNil(signatureB)) return false;
+
+	// this actually works as this is interpreted on runtime :)
+    if (signatureA.location != signatureB.location) return true;
+    
+    if (signatureA.modifiers != signatureB.modifiers) return true;
+    
+    bool changedParameters = false;
+    
+    if (!considerParameterNames) equalParameters = (signatureA.params != signatureB.params);
+    else {
+        list[NamelessParameter] paramsA = extractParametersWithoutNames(signatureA);
+        list[NamelessParameter] paramsB = extractParametersWithoutNames(signatureB);
+        
+        changedParameters = (paramsA != paramsB);
+    }
+    
+    if (signatureA.returnType != SignatureB.returnType) return true;
+    
+    // results in no change if none of the fields have changed
+    return (signatureA.exceptions != SignatureB.exceptions);
+}
+
+public list[NamelessParameter] extractParametersWithoutNames(MethodSignature signature) {
+    list[NamelessParameter] paramsList = [];
+
+    for (params <- signature.params) {
+        visit(params) {
+            case \parameter(Type \type, _, int extraDimensions): paramsList += namelessParameter(\type, extraDimensions);
+            case \vararg(Type \type): paramsList += varargs(\type);
+        };
+    }
+    
+    return paramList;
+}
 
 public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	set[MethodNameGroup] publicMethods1 = getPublicMethodNameGroupsForModel(old);
@@ -84,37 +146,4 @@ private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
 
 	}
 	return {};
-}
-
-private bool checkSignatureChange(MethodSignature signatureA, MethodSignature signatureB, bool considerParameterNames) {
-    if (signatureA.location != signatureB.location) return true;
-    
-    if (signatureA.modifiers != signatureB.modifiers) return true;
-    
-    bool changedParameters = false;
-    
-    if (!considerParameterNames) changedParameters = (signatureA.params != signatureB.params);
-    else {
-        list[NamelessParameter] paramsA = extractParametersWithoutNames(signatureA);
-        list[NamelessParameter] paramsB = extractParametersWithoutNames(signatureB);
-        
-        changedParameters = (paramsA != paramsB);
-    }
-    
-    if (signatureA.returnType != SignatureB.returnType) return true;
-    
-    // results in no change if none of the fields have changed
-    return (signatureA.exceptions != SignatureB.exceptions);
-}
-
-private list[NamelessParameter] extractParametersWithoutNames(MethodSignature signature) {
-    list[NamelessParameter] paramsList = [];
-
-    for (params <- signature.params) {
-        visit(params) {
-            case \parameter(Type \type, _, int extraDimensions): paramsList += namelessParameter(\type, extraDimensions);
-        };
-    }
-    
-    return paramList;
 }
