@@ -102,9 +102,9 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	set[MethodNameGroup] publicMethods2 = getPublicMethodNameGroupsForModel(new);
 	
 	set[MethodChange] methodTransitions = {};
-	set[loc] changedMethods = {};
-	for (loc method <- publicMethods1) {
-		if (method in publicMethods2) {
+	set[MethodNameGroup] changedMethods = {};
+	for (MethodNameGroup methodNameGroup <- publicMethods1) {
+		if (methodNameGroup in publicMethods2) {
 			//Unchanged.
 			int i = 0;
 			//methodTransitions += transition(method, method);
@@ -112,7 +112,7 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 			//TODO: implement changed signature
 			//Multiple changes possible?
 			//versionChanges += transition(method, newMethod);
-			changedMethods += method;
+			changedMethods += methodNameGroup;
 		} else {
 			//It was deleted.
 			//methodTransitions += deletion(method);
@@ -120,8 +120,8 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 		}
 	}
 	
-	set[loc] addedMethods = publicMethods2 - publicMethods1 - changedMethods;
-	for (loc addedMethod <- addedMethods) {
+	set[MethodNameGroup] addedMethods = publicMethods2 - publicMethods1 - changedMethods;
+	for (MethodNameGroup addedMethod <- addedMethods) {
 		//methodTransitions += addition(addedMethod);
 		int i = 0;
 	}
