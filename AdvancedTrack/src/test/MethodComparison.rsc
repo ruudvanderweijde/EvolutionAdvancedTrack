@@ -22,7 +22,7 @@ import lang::java::jdt::m3::AST;
 
 // represents a method signature
 data MethodSignature = nil() 
-					   | methodSignature(str name, list[Modifier] modifiers, TypeSymbol returnType, loc location, list[Declaration] params, list[Expression] exceptions)
+					   | methodSignature(str name, list[Modifier] modifiers, Type returnType, loc location, list[Declaration] params, list[Expression] exceptions)
 					   | constructorSignature(str name, list[Modifier] modifiers, loc location, list[Declaration] params, list[Expression] exceptions);
 
 // represents a parameter without considering its name
@@ -126,24 +126,28 @@ private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
 	
 	set[loc] methodLocators =  {m.definition | m <- model@modifiers, m.modifier == \public(), isMethod(m.definition)};
 	for (loc methodLocator <- methodLocators) {
-		Declaration methodDeclaration = getMethodASTEclipse(methodLocator, model = model);
-		str methodName = methodDeclaration.name;
-		
-		MethodSignature signature = methodSignature(methodName, [], methodDeclaration.\return, methodLocator, methodDeclaration.parameters, methodDeclaration.exceptions);
-		MethodNameGroup group;
-		bool found = false;
-		for (MethodNameGroup methodNameGroup <- methodNameGroups) {
-			if (methodNameGroup.name == methodName) {
-				group = methodNameGroup;
-				found = true;
-				break;
+		try {
+			Declaration methodDeclaration = getMethodASTEclipse(methodLocator, model = model);
+			str methodName = methodDeclaration.name;
+			
+			MethodSignature signature = methodSignature(methodName, [], methodDeclaration.\return, methodLocator, methodDeclaration.parameters, methodDeclaration.exceptions);
+			MethodNameGroup group;
+			bool found = false;
+			for (MethodNameGroup methodNameGroup <- methodNameGroups) {
+				if (methodNameGroup.name == methodName) {
+					group = methodNameGroup;
+					found = true;
+					break;
+				}
 			}
-		}
-		if (!found) {
-			group = methodNameGroup(methodName, {});
+			if (!found) {
+				group = methodNameGroup(methodName, {});
+			}
+			methodNameGroups = methodNameGroups - {group};
+			group.methods += {signature};
 			methodNameGroups += group;
 		}
-
+		catch: println("Did not find a method declaration for method <methodLocator>");		
 	}
-	return {};
+	return methodNameGroups;
 }
