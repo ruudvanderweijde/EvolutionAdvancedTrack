@@ -8,6 +8,7 @@ import IO;
 import List;
 import Set;
 import Type;
+import String;
 
 import vis::Figure;
 import vis::Render;
@@ -20,11 +21,36 @@ import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 
 // represents a method signature
-data MethodSignature = methodSignature(str name, list[Modifier] modifiers, TypeSymbol returnType, loc location, list[Declaration] params, list[Expression] exceptions);
+data MethodSignature = nil() 
+					   | methodSignature(str name, list[Modifier] modifiers, TypeSymbol returnType, loc location, list[Declaration] params, list[Expression] exceptions)
+					   | constructorSignature(str name, list[Modifier] modifiers, loc location, list[Declaration] params, list[Expression] exceptions);
+
 // represents a parameter without considering its name
-data NamelessParameter = namelessParameter(Type \type, int extraDimensions);
+data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
+
+public MethodSignature convertDeclarationToSignature(Declaration decl) {
+	MethodSignature signature = nil();
+	visit(decl) {
+		case \constructor(str name, list[Declaration] parameters, list[Expression] exceptions, _): signature = nil();
+		case \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, _): signature = nil();
+		case \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions): signature = nil();
+	}
+
+	return signature;
+}
+
+public bool isNil(MethodSignature signature) {
+	visit (signature) {
+		case nil(): return true;
+	};
+
+	return false;
+}
 
 public bool checkSignatureChange(MethodSignature signatureA, MethodSignature signatureB, bool considerParameterNames) {
+	if (isNil(signatureA) || isNil(signatureB)) return false;
+
+	// this actually works as this is interpreted on runtime :)
     if (signatureA.location != signatureB.location) return true;
     
     if (signatureA.modifiers != signatureB.modifiers) return true;
@@ -51,6 +77,7 @@ public list[NamelessParameter] extractParametersWithoutNames(MethodSignature sig
     for (params <- signature.params) {
         visit(params) {
             case \parameter(Type \type, _, int extraDimensions): paramsList += namelessParameter(\type, extraDimensions);
+            case \vararg(Type \type): paramsList += varargs(\type);
         };
     }
     
