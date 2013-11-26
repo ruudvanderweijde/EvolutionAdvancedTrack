@@ -137,19 +137,8 @@ private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
 		try {
 			Declaration methodDeclaration = getMethodASTEclipse(methodLocator, model = model);
 			str methodName = methodDeclaration.name;
-			
 			MethodSignature signature = methodSignature(methodName, [], methodDeclaration.\return, methodLocator, methodDeclaration.parameters, methodDeclaration.exceptions);
-			MethodNameGroup group = nilGroup();
-			bool found = false;
-			for (MethodNameGroup methodNameGroup <- methodNameGroups) {
-				if (methodNameGroup.name == methodName) {
-					group = methodNameGroup;
-					break;
-				}
-			}
-			if (isNil(group)) {
-				group = methodNameGroup(methodName, {});
-			}
+			MethodNameGroup group = getMethodNameGroup(methodName, methodNameGroups);
 			methodNameGroups = methodNameGroups - {group};
 			group.methods += {signature};
 			methodNameGroups += group;
@@ -157,4 +146,18 @@ private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
 		catch: println("Did not find a method declaration for method <methodLocator>");		
 	}
 	return methodNameGroups;
+}
+
+private MethodNameGroup getMethodNameGroup(str methodName, set[MethodNameGroup] methodNameGroups) {
+	MethodNameGroup group = nilGroup();
+	for (MethodNameGroup methodNameGroup <- methodNameGroups) {
+		if (methodNameGroup.name == methodName) {
+			group = methodNameGroup;
+			break;
+		}
+	}
+	if (isNil(group)) {
+		group = methodNameGroup(methodName, {});
+	}
+	return group;
 }
