@@ -24,46 +24,12 @@ data MethodSignature = methodSignature(str name, list[Modifier] modifiers, TypeS
 // represents a parameter without considering its name
 data NamelessParameter = namelessParameter(Type \type, int extraDimensions);
 
-public bool checkSignatureChange(MethodSignature signatureA, MethodSignature signatureB, bool considerParameterNames) {
-    if (signatureA.location != signatureB.location) return true;
-    
-    if (signatureA.modifiers != signatureB.modifiers) return true;
-    
-    bool changedParameters = false;
-    
-    if (!considerParameterNames) equalParameters = (signatureA.params != signatureB.params);
-    else {
-        list[NamelessParameter] paramsA = extractParametersWithoutNames(signatureA);
-        list[NamelessParameter] paramsB = extractParametersWithoutNames(signatureB);
-        
-        changedParameters = (paramsA != paramsB);
-    }
-    
-    if (signatureA.returnType != SignatureB.returnType) return true;
-    
-    // results in no change if none of the fields have changed
-    return (signatureA.exceptions != SignatureB.exceptions);
-}
-
-public list[NamelessParameter] extractParametersWithoutNames(MethodSignature signature) {
-    list[NamelessParameter] paramsList = [];
-
-    for (params <- signature.params) {
-        visit(params) {
-            case \parameter(Type \type, _, int extraDimensions): paramsList += namelessParameter(\type, extraDimensions);
-        };
-    }
-    
-    return paramList;
-}
-
-//TODO: change LOC to method signature
-data MethodNameGroup = methodNameGroup(str name, list[loc] methods);
+data MethodNameGroup = methodNameGroup(str name, set[MethodSignature] methods);
 data MethodChange = transition(MethodNameGroup old, MethodNameGroup new) | addition(MethodNameGroup new) | deletion(MethodNameGroup old);
 
 public set[MethodChange] getMethodChanges(M3 old, M3 new) {
-	set[loc] publicMethods1 = getPublicMethodsForModel(old);
-	set[loc] publicMethods2 = getPublicMethodsForModel(new);
+	set[MethodNameGroup] publicMethods1 = getPublicMethodNameGroupsForModel(old);
+	set[MethodNameGroup] publicMethods2 = getPublicMethodNameGroupsForModel(new);
 	
 	set[MethodChange] methodTransitions = {};
 	set[loc] changedMethods = {};
@@ -93,6 +59,62 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	return methodTransitions;
 }
 
-private set[loc] getPublicMethodsForModel(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), isMethod(m.definition)};
+private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
+	set[MethodNameGroup] methodNameGroups = {};
+	
+	set[loc] methodLocators =  {m.definition | m <- model@modifiers, m.modifier == \public(), isMethod(m.definition)};
+	for (loc methodLocator <- methodLocators) {
+		Declaration methodDeclaration = getMethodASTEclipse(methodLocator, model = model);
+		str methodName = methodDeclaration.name;
+		
+		MethodSignature signature = methodSignature(methodName, [], methodDeclaration.\return, methodLocator, methodDeclaration.parameters, methodDeclaration.exceptions);
+		MethodNameGroup group;
+		bool found = false;
+		for (MethodNameGroup methodNameGroup <- methodNameGroups) {
+			if (methodNameGroup.name == methodName) {
+				group = methodNameGroup;
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			group = methodNameGroup(methodName, {});
+			methodNameGroups += group;
+		}
+
+	}
+	return {};
+}
+
+private bool checkSignatureChange(MethodSignature signatureA, MethodSignature signatureB, bool considerParameterNames) {
+    if (signatureA.location != signatureB.location) return true;
+    
+    if (signatureA.modifiers != signatureB.modifiers) return true;
+    
+    bool changedParameters = false;
+    
+    if (!considerParameterNames) changedParameters = (signatureA.params != signatureB.params);
+    else {
+        list[NamelessParameter] paramsA = extractParametersWithoutNames(signatureA);
+        list[NamelessParameter] paramsB = extractParametersWithoutNames(signatureB);
+        
+        changedParameters = (paramsA != paramsB);
+    }
+    
+    if (signatureA.returnType != SignatureB.returnType) return true;
+    
+    // results in no change if none of the fields have changed
+    return (signatureA.exceptions != SignatureB.exceptions);
+}
+
+private list[NamelessParameter] extractParametersWithoutNames(MethodSignature signature) {
+    list[NamelessParameter] paramsList = [];
+
+    for (params <- signature.params) {
+        visit(params) {
+            case \parameter(Type \type, _, int extraDimensions): paramsList += namelessParameter(\type, extraDimensions);
+        };
+    }
+    
+    return paramList;
 }
