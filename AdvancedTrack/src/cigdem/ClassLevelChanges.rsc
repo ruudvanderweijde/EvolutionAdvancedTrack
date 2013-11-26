@@ -86,5 +86,18 @@ public void test3(){
 	listAllFieldsOfAClass(myModel, myClass);
 }
 
+public void test4() {
+	M3 oldModel = createM3FromEclipseProject(|project://Guava/versions/01|);
+	M3 newModel = createM3FromEclipseProject(|project://Guava/versions/02|);
+	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
+	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
+	set [loc] addedFields = newPublicFields - oldPublicFields;
+	set [loc] removedFields = oldPublicFields - newPublicFields;
+	if ( isEmpty(addedFields) ) { println ("No new fields are added."); }
+	else {println ("Added fields: <addedFields>");}
+	if ( isEmpty(removedFields) ) { println ("No fields are removed."); }
+	else {println ("Removed fields: <removedFields>");}	
+}
+
 
 
