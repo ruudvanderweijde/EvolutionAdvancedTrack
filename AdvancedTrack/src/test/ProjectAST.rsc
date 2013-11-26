@@ -19,6 +19,15 @@ import lang::java::jdt::m3::Core;
 
 import \test::MethodComparison;
 
+import analysis::m3::Core;
+
+import Message;
+import Set;
+import IO;
+import util::FileSystem;
+import analysis::graphs::Graph;
+extend analysis::m3::TypeSymbol;
+
 data Change = transition(loc old, loc new) | addition(loc new) | deletion(loc old);
 
 data VersionTransition = versionTransition(loc oldVersion,
@@ -77,7 +86,13 @@ public void run() {
 public void run2() {
 	logMessage("Retrieving M3 models...", 1);
 	list[M3] models = getM3Models(projects);
-
+	model = models[0];
+	result  = [m | m <- model@messages, m is error];
+  	result += [error("undeclared element in containment", decl) | decl <- model@containment<to> - model@declarations<name>];
+  	result += [error("non-root element is not contained anywhere", decl) | decl <- model@containment<from> - model@declarations<name> - top(model@containment)];
+  	iprintln(result);
+//iprintln(models[0]);
+exit;
 	logMessage("Comparing models...", 1);
 	result = compareM3Models(models);
 	
