@@ -17,13 +17,15 @@ import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
+import \test::MethodComparison;
+
 data Change = transition(loc old, loc new) | addition(loc new) | deletion(loc old);
+
 data VersionTransition = versionTransition(loc oldVersion,
 										   loc newVersion,
-										   list[Change] classChanges, 
-										   list[Change] methodChanges, 
-										   list[Change] fieldChanges);
-
+										   set[Change] classChanges, 
+										   set[MethodChange] methodChanges, 
+										   set[Change] fieldChanges);
 
 public list[loc] projects = [
 							|project://GuavaRelease01|,
@@ -63,7 +65,7 @@ public void run() {
 	list[VersionTransition] transitions = compareM3Models(models);
 	
 	for (VersionTransition transition <- transitions) {
-		println("-------[ <transition> ]-------");
+		println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
 		//for (y <- result[transition]) {
 		//	iprintln("<y>: <size(result[x][y])>");
 		//}
@@ -177,13 +179,13 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 
 private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
-	list[Change] methodChanges = getMethodChanges(old, new);
-	list[Change] fieldChanges = getFieldChanges(old, new);
+	set[MethodChange] methodChanges = getMethodChanges(old, new);
+	set[Change] fieldChanges = getFieldChanges(old, new);
 	
 	//TODO: derive changed classes
 	//	set[loc] publicClasses1 = getPublicClassesForModel(old);
 	//	set[loc] publicClasses2 = getPublicClassesForModel(new);
-	list[Change] classChanges = [];
+	set[Change] classChanges = {};
 	
 	//TODO: deduce version numbers
 	loc oldVersion = old.id;
@@ -192,45 +194,13 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	return versionTransition(oldVersion, newVersion, classChanges, methodChanges, fieldChanges);
 }
 
-private list[Change] getMethodChanges(M3 old, M3 new) {
-	set[loc] publicMethods1 = getPublicMethodsForModel(old);
-	set[loc] publicMethods2 = getPublicMethodsForModel(new);
-	
-	list[Change] methodTransitions = [];
-	set[loc] changedMethods = {};
-	for (loc method <- publicMethods1) {
-		if (method in publicMethods2) {
-			//Unchanged.
-			methodTransitions += transition(method, method);
-		} else if (false) {
-			//TODO: implement changed signature
-			//Multiple changes possible?
-			//versionChanges += transition(method, newMethod);
-			changedMethods += method;
-		} else {
-			//It was deleted.
-			methodTransitions += deletion(method);
-		}
-	}
-	
-	set[loc] addedMethods = publicMethods2 - publicMethods1 - changedMethods;
-	for (loc addedMethod <- addedMethods) {
-		methodTransitions += addition(addedMethod);
-	}
-	
-	return methodTransitions;
-}
-
-private list[Change] getFieldChanges(M3 old, M3 new) {
+private set[Change] getFieldChanges(M3 old, M3 new) {
 	//TODO: implement
 	//set[loc] publicFields1 = getPublicFieldsForModel(old);
 	//set[loc] publicFields2 = getPublicFieldsForModel(new);
-	return [];
+	return {};
 }
 
-public set[loc] getPublicMethodsForModel(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), isMethod(m.definition)};
-}
 public set[loc] getPublicClassesForModel(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition)};
 }
