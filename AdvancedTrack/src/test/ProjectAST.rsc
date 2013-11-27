@@ -38,8 +38,8 @@ data VersionTransition = versionTransition(loc oldVersion,
 
 public list[loc] projects = [
 							|project://GuavaRelease01|,
-							//|project://GuavaRelease02|,
-							//|project://GuavaRelease03|,
+							|project://GuavaRelease02|,
+							|project://GuavaRelease03|
 							//|project://GuavaRelease05|,
 							//|project://GuavaRelease06|,
 							//|project://GuavaRelease07|,
@@ -51,7 +51,7 @@ public list[loc] projects = [
 							//|project://GuavaRelease13.0|,
 							//|project://GuavaRelease14.0|,
 							//|project://GuavaRelease14.0.1|,
-							|project://GuavaRelease15.0|
+							//|project://GuavaRelease15.0|
 							];
 							
 @logLevel {
@@ -91,8 +91,8 @@ public void run2() {
   	result += [error("undeclared element in containment", decl) | decl <- model@containment<to> - model@declarations<name>];
   	result += [error("non-root element is not contained anywhere", decl) | decl <- model@containment<from> - model@declarations<name> - top(model@containment)];
   	iprintln(result);
-//iprintln(models[0]);
-exit;
+////iprintln(models[0]);
+//exit;
 	logMessage("Comparing models...", 1);
 	result = compareM3Models(models);
 	

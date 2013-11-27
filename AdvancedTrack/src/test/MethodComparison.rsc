@@ -107,7 +107,7 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 		if (methodNameGroup in publicMethods2) {
 			//Unchanged.
 			int i = 0;
-			//methodTransitions += transition(method, method);
+			methodTransitions += transition(methodNameGroup, methodNameGroup);
 		} else if (false) {
 			//TODO: implement changed signature
 			//Multiple changes possible?
@@ -115,15 +115,14 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 			changedMethods += methodNameGroup;
 		} else {
 			//It was deleted.
-			//methodTransitions += deletion(method);
+			methodTransitions += deletion(methodNameGroup);
 			int i = 0;
 		}
 	}
 	
 	set[MethodNameGroup] addedMethods = publicMethods2 - publicMethods1 - changedMethods;
 	for (MethodNameGroup addedMethod <- addedMethods) {
-		//methodTransitions += addition(addedMethod);
-		int i = 0;
+		methodTransitions += addition(addedMethod);
 	}
 	
 	return methodTransitions;
