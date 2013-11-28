@@ -84,9 +84,17 @@ public bool isFieldModifierChanged (M3 oldModel, M3 newModel, loc fieldName) {
 }
 
 
+public loc getTypeOfField (M3 theModel, loc fieldName) {
+	list [loc] typeList = [theType.to | theType <- theModel@typeDependency,  theType.from == fieldName];
+	return typeList[0];
+}
+
+
+// <|java+field:///MyHelloWorld/zbb|,|java+primitiveType:///boolean|>
+// rel[loc from,loc to]
 
 public bool isFieldTypeChanged (M3 oldModel, M3 newModel, loc fieldName) {
-	return (getModifiersOfField(oldModel, fieldName) != getModifiersOfField(newModel, fieldName)) ;
+	return (getTypeOfField(oldModel, fieldName) != getTypeOfField(newModel, fieldName)) ;
 }
 
 
@@ -96,16 +104,22 @@ public void findAllFieldChanges(list [loc] projectList) {
 	list [M3] models = getM3Models(projectList);
 	M3 oldModel = models[0];
 	M3 newModel = models[1];
+	//println("Type dependency of old model: <oldModel@typeDependency>");
 	set [loc] oldFields = fields(oldModel);
 	set [loc] newFields = fields(newModel);
 	set [loc] commonFields = oldFields & newFields;
 	println("Number of common fields: <size(commonFields)>");
 	for (loc oneField <- commonFields)  
 		{ 
-			if  (isFieldModifierChanged(oldModel, newModel, oneField)) {
-				println ("The old modifiers for field: <oneField> are: <getModifiersOfField(oldModel, oneField)>"); 
-		  		println ("The new modifiers for field: <oneField> are: <getModifiersOfField(newModel, oneField)>"); 
+			//if  (isFieldModifierChanged(oldModel, newModel, oneField)) {
+			//	println ("The old modifiers for field: <oneField> are: <getModifiersOfField(oldModel, oneField)>"); 
+		 // 		println ("The new modifiers for field: <oneField> are: <getModifiersOfField(newModel, oneField)>"); 
+			//}		
+			if  (isFieldTypeChanged(oldModel, newModel, oneField)) {
+				println ("The old type of the field: <oneField> is: <getTypeOfField(oldModel, oneField)>"); 
+		  		println ("The new type of the field: <oneField> is: <getTypeOfField(newModel, oneField)>"); 
 			}		
+			
 		}
 }
 
