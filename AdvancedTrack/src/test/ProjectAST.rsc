@@ -59,7 +59,7 @@ public list[loc] projects = [
 	Log level 1 => main logging;
 	Log level 2 => debug logging;
 }
-private int logLevel = 1;
+private int logLevel = 2;
 
 @doc { }
 public void logMessage(str message, int level) {
@@ -79,30 +79,155 @@ public void run() {
 		//	iprintln("<y>: <size(result[x][y])>");
 		//}
 	}
-}
-							
-@doc {
-}
-public void run2() {
-	logMessage("Retrieving M3 models...", 1);
-	list[M3] models = getM3Models(projects);
-	model = models[0];
-	result  = [m | m <- model@messages, m is error];
-  	result += [error("undeclared element in containment", decl) | decl <- model@containment<to> - model@declarations<name>];
-  	result += [error("non-root element is not contained anywhere", decl) | decl <- model@containment<from> - model@declarations<name> - top(model@containment)];
-  	iprintln(result);
-////iprintln(models[0]);
-//exit;
-	logMessage("Comparing models...", 1);
-	result = compareM3Models(models);
 	
-	logMessage("Printing table.", 1);
-	iprintln(result);
-	//readablePrint(result);
-	//printImage(result);
+	visualizeTransitions(transitions);
+}
+
+private void visualizeTransitions(list[VersionTransition] transitions) {
 	
-	//logMessage("Done.", 1);
-	//writeTextValueFile(|project://AdvancedTrack/data/test.txt|, io);
+	list[Figure] treemaps = [];
+	for (transition <- transitions) {
+		logMessage("visit start", 1);
+		
+		treemaps += treemap([
+				box(area(10),fillColor("green")),
+	     		box(area(20),fillColor("red")),
+	     		box(text("jada"),area(10)),
+            	box(vcat([
+            		text("nested"),
+            		treemap([
+            			box(area(5),fillColor("purple")),box(area(10),fillColor("orange"))
+            		])
+            	],shrink(0.9)),area(30),fillColor("lightblue"))
+     ]);
+	}
+	render(hcat(treemaps, gap(10)));	
+}
+
+public Figure versionFigure(VersionTransition transition) {
+		
+		visit(transition) {
+			case addition: println("addition");
+			case deletion: println("deletion");
+			case transition: println("transition");
+		}
+
+}
+
+public FProperty popup(str s) {
+	return mouseOver(box(text(s), gap(1), fillColor("Yellow")));
+}
+
+public Figure b(str id, str label) {
+	return box(text(id), popup(label));
+}
+
+public Figure package(str id, str label) {
+	return box(text(id), popup(label));
+}
+
+public void viz() {
+	render(
+		hscreen(
+			hcat(
+				[	
+					hcat(
+						[
+							package("p","Package X"),
+							vcat(
+								[
+									hcat(
+										[
+											b("c","Class X"),
+											vcat(
+												[
+													b("m", "Method X"), 
+													b("m", "Method Y")
+												]
+											)
+										]
+									)
+									
+								]
+							)
+						],
+						project(text("1-2"), "versionLabel")
+					),
+					hcat(
+						[
+							b("p","Package X"),
+							vcat(
+								[
+									hcat(
+										[
+											b("c","Class X"),
+											vcat(
+												[
+													b("m", "Method X"), 
+													b("m", "Method Y")
+												]
+											)
+										]
+									)
+									
+								]
+							)
+						],
+						project(text("2-3"), "versionLabel")
+					),
+					hcat(
+						[
+							b("p","Package X"),
+							vcat(
+								[
+									hcat(
+										[
+											b("c","Class X"),
+											vcat(
+												[
+													b("m", "Method X"), 
+													b("m", "Method Y")
+												]
+											)
+										]
+									)
+									
+								]
+							)
+						],
+						project(text("3-4"), "versionLabel")
+					),
+					hcat(
+						[
+							b("p","Package X"),
+							vcat(
+								[
+									hcat(
+										[
+											b("c","Class X"),
+											vcat(
+												[
+													b("m", "Method X"), 
+													b("m", "Method Y"),
+													b("m", "Method Z")
+												]
+											)
+										]
+									)
+									
+								]
+							)
+						],
+						project(text("4-5"), "versionLabel")
+					)
+				],
+				top(),
+				gap(10)
+			), 
+			id("versionLabel")
+		)
+	);
+	return;
 }
 
 @doc { get a list of M3 models from file system }
@@ -192,6 +317,7 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 	return changes;
 }
 
+@memo
 private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
 	set[MethodChange] methodChanges = getMethodChanges(old, new);
