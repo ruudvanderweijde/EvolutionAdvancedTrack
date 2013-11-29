@@ -111,10 +111,10 @@ public void findAllFieldChanges(list [loc] projectList) {
 	println("Number of common fields: <size(commonFields)>");
 	for (loc oneField <- commonFields)  
 		{ 
-			//if  (isFieldModifierChanged(oldModel, newModel, oneField)) {
-			//	println ("The old modifiers for field: <oneField> are: <getModifiersOfField(oldModel, oneField)>"); 
-		 // 		println ("The new modifiers for field: <oneField> are: <getModifiersOfField(newModel, oneField)>"); 
-			//}		
+			if  (isFieldModifierChanged(oldModel, newModel, oneField)) {
+				println ("The old modifiers for field: <oneField> are: <getModifiersOfField(oldModel, oneField)>"); 
+		  		println ("The new modifiers for field: <oneField> are: <getModifiersOfField(newModel, oneField)>"); 
+			}		
 			if  (isFieldTypeChanged(oldModel, newModel, oneField)) {
 				println ("The old type of the field: <oneField> is: <getTypeOfField(oldModel, oneField)>"); 
 		  		println ("The new type of the field: <oneField> is: <getTypeOfField(newModel, oneField)>"); 
@@ -126,13 +126,17 @@ public void findAllFieldChanges(list [loc] projectList) {
 
 
 public void findClassLevelChanges(list [loc] myTestProjects) {
+	println("Starting...");
 	list [M3] models = getM3Models(myTestProjects);
 	M3 oldModel = models[0];
 	M3 newModel = models[1];
-	set [loc] addedFields = getAddedPublicFields(oldModel, newModel);
-	set [loc] removedFields = getRemovedPublicFields(oldModel, newModel);
+	println("Models are retrieved.");
 	println("Changes between two projects: <myTestProjects[0]> and <myTestProjects[1]>");
-	println("Number of added public fields: <size(addedFields)>");
+	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
+	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
+	set [loc] addedFields = newPublicFields - oldPublicFields;
+	set [loc] removedFields = oldPublicFields - newPublicFields;
+	println("Number of added public fields: <size(addedFields)>:");
 	println("Number of removed public fields: <size(removedFields)>");	
 	set [loc] changedNewClasses = {getClassOfAField(newModel, field) | field <- addedFields};
 	set [loc] changedOldClasses = {getClassOfAField(oldModel, field) | field <- removedFields};
@@ -141,9 +145,11 @@ public void findClassLevelChanges(list [loc] myTestProjects) {
 	set [loc] addedClasses = getPublicClassesForModel(newModel) - getPublicClassesForModel(oldModel);
 	set [loc] removedClasses = getPublicClassesForModel(oldModel) - getPublicClassesForModel(newModel);
 	println("The number of classes in the new model: <size(getPublicClassesForModel(newModel))>"); 
-	//iprintln(sort(getPublicClassesForModel(newModel)));
 	println("The number of added classes : <size(addedClasses)>"); 
-	println("The number of removed classes : <size(removedClasses)>"); 	
+	println("The number of removed classes : <size(removedClasses)>"); 
+	
+	println("List of packages for new model :");
+	iprintln(sort(packages(newModel)));	
 }
 
 

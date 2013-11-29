@@ -10,17 +10,24 @@ import Set;
 import util::Math;
 import \test::ProjectAST;
 
-public list[loc] myTestProjects = [	|project://ChangedProject01|,
+public list[loc] myChangedProjects = [	|project://ChangedProject01|,
 							 		|project://ChangedProject02|,
 							 		|project://ChangedProject03|,
 							 		|project://ChangedProject04|,
 							 		|project://ChangedProject05|,
 							 		|project://ChangedProject06|,
 							 		|project://ChangedProject07|
-							 		]; 
+							 		 ]; 
+							 		
+public list[loc] androidProjects = [|project://AndroidSDK14Sources|];
 							 		
 							 		
-public void prepareM3s() {
-		writeM3Models(myTestProjects);
+public void prepareM3sChangedProjects() {
+		writeM3Models(myChangedProjects);
+}
+
+
+public void prepareM3sAndroidProject() {
+		writeM3Models(androidProjects);
 }
 
