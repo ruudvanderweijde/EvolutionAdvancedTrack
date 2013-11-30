@@ -98,6 +98,21 @@ public bool isFieldTypeChanged (M3 oldModel, M3 newModel, loc fieldName) {
 }
 
 
+set [loc] getDeprecatedSetForField(rel [loc from, loc to] dependencies, loc fieldName) {
+	return {dependency.from | dependency <- dependencies, 
+ 					dependency.to == |java+interface:///java/lang/Deprecated|,
+ 					dependency.from == fieldName};
+}
+
+
+
+public bool isFieldDeprecated(M3 oldModel, M3 newModel, loc fieldName) {
+ rel[loc from, loc to] newDependencies = newModel@typeDependency;
+ rel[loc from, loc to] oldDependencies = oldModel@typeDependency;
+ return (! isEmpty( getDeprecatedSetForField(newDependencies, fieldName)) &&
+ 		isEmpty( getDeprecatedSetForField(oldDependencies, fieldName)) 
+ 		) ;
+}
 
 
 public void findAllFieldChanges(list [loc] projectList) {
@@ -119,6 +134,9 @@ public void findAllFieldChanges(list [loc] projectList) {
 				println ("The old type of the field: <oneField> is: <getTypeOfField(oldModel, oneField)>"); 
 		  		println ("The new type of the field: <oneField> is: <getTypeOfField(newModel, oneField)>"); 
 			}		
+			if (isFieldDeprecated(oldModel, newModel, oneField)) {
+				println ("The field: <oneField> is deprecated."); 			
+			}
 			
 		}
 }
