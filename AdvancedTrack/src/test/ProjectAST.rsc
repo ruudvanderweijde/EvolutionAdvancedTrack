@@ -37,9 +37,9 @@ data VersionTransition = versionTransition(loc oldVersion,
 										   set[Change] fieldChanges);
 
 public list[loc] projects = [
-							|project://GuavaRelease01|,
-							|project://GuavaRelease02|,
-							|project://GuavaRelease03|
+							//|project://GuavaRelease01|,
+							//|project://GuavaRelease02|,
+							//|project://GuavaRelease03|
 							//|project://GuavaRelease05|,
 							//|project://GuavaRelease06|,
 							//|project://GuavaRelease07|,
@@ -49,9 +49,9 @@ public list[loc] projects = [
 							//|project://GuavaRelease11.0|,
 							//|project://GuavaRelease12.0|,
 							//|project://GuavaRelease13.0|,
-							//|project://GuavaRelease14.0|,
+							|project://GuavaRelease14.0|,
 							//|project://GuavaRelease14.0.1|,
-							//|project://GuavaRelease15.0|
+							|project://GuavaRelease15.0|
 							];
 							
 @logLevel {
@@ -317,7 +317,6 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 	return changes;
 }
 
-@memo
 private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
 	set[MethodChange] methodChanges = getMethodChanges(old, new);

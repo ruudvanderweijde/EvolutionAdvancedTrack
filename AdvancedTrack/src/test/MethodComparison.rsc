@@ -28,9 +28,7 @@ data MethodSignature = nil()
 // represents a parameter without considering its name
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
-data MethodNameGroup = nilGroup() | methodNameGroup(str name, set[MethodSignature] methods);
-
-data MethodChange = transition(MethodNameGroup old, MethodNameGroup new) | addition(MethodNameGroup new) | deletion(MethodNameGroup old);
+data MethodChange = unchanged(loc locator) | pushup(loc previous, loc new) | pulldown(loc previous, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
 
 public MethodSignature convertDeclarationToSignature(Declaration decl) {
 	MethodSignature signature = nil();
@@ -50,15 +48,6 @@ private bool isNil(MethodSignature signature) {
 
 	return false;
 }
-
-private bool isNil(MethodNameGroup methodNameGroup) {
-	visit(methodNameGroup) {
-		case nilGroup(): return true;
-	}
-	
-	return false;
-}
-
 
 public bool checkSignatureChange(MethodSignature signatureA, MethodSignature signatureB, bool considerParameterNames) {
 	if (isNil(signatureA) || isNil(signatureB)) return false;
@@ -98,65 +87,77 @@ public list[NamelessParameter] extractParametersWithoutNames(MethodSignature sig
 }
 
 public set[MethodChange] getMethodChanges(M3 old, M3 new) {
-	set[MethodNameGroup] publicMethods1 = getPublicMethodNameGroupsForModel(old);
-	set[MethodNameGroup] publicMethods2 = getPublicMethodNameGroupsForModel(new);
+	map[loc, set[loc]] modelHierarchy1 = getModelHierarchy(old);
+	map[loc, set[loc]] modelHierarchy2 = getModelHierarchy(new);
+	
+	set[loc] deprecatedMethods = findDeprecatedMethods(new);
 	
 	set[MethodChange] methodTransitions = {};
-	set[MethodNameGroup] changedMethods = {};
-	for (MethodNameGroup methodNameGroup <- publicMethods1) {
-		if (methodNameGroup in publicMethods2) {
-			//Unchanged.
-			int i = 0;
-			methodTransitions += transition(methodNameGroup, methodNameGroup);
-		} else if (false) {
-			//TODO: implement changed signature
-			//Multiple changes possible?
-			//versionChanges += transition(method, newMethod);
-			changedMethods += methodNameGroup;
-		} else {
-			//It was deleted.
-			methodTransitions += deletion(methodNameGroup);
-			int i = 0;
+	for (loc classOrInterface <- modelHierarchy1) {
+		set[loc] methodsInClassOrInterface1 = modelHierarchy1[classOrInterface];
+		if (classOrInterface notin modelHierarchy2) {
+			//TODO: find out if we need to count class change here.
+			continue;
+		}
+		set[loc] methodsInClassOrInterface2 = modelHierarchy2[classOrInterface];
+	
+		for (loc method <- methodsInClassOrInterface1) {
+			println(method);
+			if (method in methodsInClassOrInterface2) {
+				
+				if (method in deprecatedMethods) {
+					methodTransitions += deprecated(method);
+				} else {
+					methodTransitions += unchanged(method);
+				}
+			
+				//methodTransitions += (method in deprecatedMethods) ? deprecated(method) : unchanged(method);
+			} else if (false) {
+				//TODO: implement changed signature
+				//Multiple changes possible?
+				//versionChanges += transition(method, newMethod);
+				changedMethods += methodNameGroup;
+			} else {
+				//It was deleted.
+				//methodTransitions += deleted(methodNameGroup);
+				int i = 0;
+			}
 		}
 	}
 	
-	set[MethodNameGroup] addedMethods = publicMethods2 - publicMethods1 - changedMethods;
-	for (MethodNameGroup addedMethod <- addedMethods) {
-		methodTransitions += addition(addedMethod);
-	}
-	
+	//set[MethodNameGroup] addedMethods = modelHierarchy2 - modelHierarchy1;
+	//for (MethodNameGroup addedMethod <- addedMethods) {
+	//	methodTransitions += addition(addedMethod);
+	//}
+	//
 	return methodTransitions;
 }
 
-private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
-	set[MethodNameGroup] methodNameGroups = {};
-	
-	set[loc] methodLocators =  {m.definition | m <- model@modifiers, m.modifier == \public(), isMethod(m.definition)};
-	for (loc methodLocator <- methodLocators) {
-		try {
-			Declaration methodDeclaration = getMethodASTEclipse(methodLocator, model = model);
-			str methodName = methodDeclaration.name;
-			MethodSignature signature = methodSignature(methodName, [], methodDeclaration.\return, methodLocator, methodDeclaration.parameters, methodDeclaration.exceptions);
-			MethodNameGroup group = getMethodNameGroup(methodName, methodNameGroups);
-			methodNameGroups = methodNameGroups - {group};
-			group.methods += {signature};
-			methodNameGroups += group;
-		}
-		catch: println("Did not find a method declaration for method <methodLocator>");		
-	}
-	return methodNameGroups;
+private set[loc] findDeprecatedMethods(M3 model) {
+	rel[loc from, loc to] typeDependencies = model@typeDependency;
+	return {typeDependency.from | typeDependency <- typeDependencies, typeDependency.to == |java+interface:///java/lang/Deprecated|};
 }
 
-private MethodNameGroup getMethodNameGroup(str methodName, set[MethodNameGroup] methodNameGroups) {
-	MethodNameGroup group = nilGroup();
-	for (MethodNameGroup methodNameGroup <- methodNameGroups) {
-		if (methodNameGroup.name == methodName) {
-			group = methodNameGroup;
-			break;
-		}
-	}
-	if (isNil(group)) {
-		group = methodNameGroup(methodName, {});
-	}
-	return group;
+
+private map[loc, set[loc]] getModelHierarchy(M3 model) {
+    map[loc class, set[loc] methods] methodsPerClassInterface = ();
+    
+    set[loc] projectClasses = classes(model);
+    set[loc] projectInterfaces = interfaces(model);
+    /*
+        TODO: find out if interface and class inner classes and methods are represented
+        set[loc] projectInnerClasses = nestedClasses();
+    */
+    set[loc] projectClassesAndInterfaces = projectClasses + projectInterfaces;
+    methodModifiersMap = toMap(model@modifiers);
+    
+    //TODO: great stuff!
+    // iprintln(declaredMethods(model));
+    // iprintln(methodModifiersMap);
+    for (loc locator <- projectClassesAndInterfaces) {
+        // Public methods represented in the class or interface
+        set[loc] publicMethods = {m | m <- methods(model, locator), \public() in (methodModifiersMap[m]? ? methodModifiersMap[m] : {})};
+        methodsPerClassInterface += (locator:publicMethods);
+    }
+    return methodsPerClassInterface;
 }
