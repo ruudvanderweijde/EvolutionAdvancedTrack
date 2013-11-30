@@ -28,7 +28,7 @@ data MethodSignature = nil()
 // represents a parameter without considering its name
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
-data MethodChange = unchanged(loc locator) | pushup(loc previous, loc new) | pulldown(loc previous, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
+data MethodChange = unchanged(loc locator) | hierarchicalMove(loc previous, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
 
 public MethodSignature convertDeclarationToSignature(Declaration decl) {
 	MethodSignature signature = nil();
@@ -106,8 +106,13 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 				methodTransitions += (method in deprecatedMethods) ? deprecated(method) : unchanged(method);
 			}
 			else {
-				findMethodInInheritanceHierarchy(method, new, modelHierarchyNew, classOrInterface);
-				methodTransitions += deleted(method);
+				tuple[bool found, loc newPath] methodInHierarchy = findMethodInInheritanceHierarchy(method, new, modelHierarchyNew, classOrInterface);
+				if (methodInHierarchy.found) {
+					methodTransitions += hierarchicalMove(method, methodInHierarchy.newPath);
+				}
+				else {
+					methodTransitions += deleted(method);
+				}
 			}
 		}
 	}
@@ -120,51 +125,58 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	return methodTransitions;
 }
 
-private set[loc] getParentHierarchy(set[loc] classesOrInterfaces, M3 model) {
-	set[loc] totalParentsFound = {};
-	for (x <- classesOrInterfaces) {
-		totalParentsFound += getParentHierarchy(x, model);
-	}
-	
-	return totalParentsFound;
-}
-
 private set[loc] getParentHierarchy(loc classOrInterface, M3 model) {
 	set[loc] totalParentsFound = {};
 	bool done = false;
 	while (!done) {
 		set[loc] parentsFound = { x.to | x <- model@extends, x.from == classOrInterface };
-		totalParentsFound += parentsFound; // parents, one max in java :)
-		if (isEmpty(parentsFound)) done = true;
-
-		totalParentsFound += getParentHierarchy(parentsFound, model);
+		totalParentsFound += parentsFound; // parents, one max in java :), our set will be of size 1 max
+		if (isEmpty(parentsFound)) {
+			done = true;
+			break;
+		}
+		assert(size(parentsFound) == 1);
+		classOrInterface = getOneFrom(parentsFound);
 	}
 	
 	return totalParentsFound;
 }
 
-public bool findMethodInInheritanceHierarchy(loc method, M3 model, map[loc, set[loc]] modelHierarchy, loc encapsulatingClassOrInterface) {
-	str methodToFind = method.file; // gets last segment 
-	
-	// TODO: might figure a great transitive closure out here :)
-	/*
-	loc encapsulatingClassOrInterfaceToFind = encapsulatingClassOrInterface;
-	set[loc] hierarchyToCheck = {};
+
+private set[loc] getChildrenHierarchy(loc classOrInterface, M3 model) {
+	set[loc] getChildrenOfChild(loc locator) { return getChildrenHierarchy(locator, model); }
+	set[value] splice(set[value] input) {
+		if (isEmpty(input)) return input;
+		return *input;
+	}
+	totalChildrenFound = {};
 	bool done = false;
 	while (!done) {
-		set[loc] childrenFound = { x.from | x <- model@extends, x.to == encapsulatingClassOrInterface };
-		hierarchyToCheck += childrenFound;
-		hierarchyToCheck += parentsFound;
-		if (isEmpty(childrenFound) && isEmpty(parentsFound)) done = true;
-		else {
-			int i = 0;
+		set[loc] childrenFound = { x.from | x <- model@extends, x.to == classOrInterface };
+		totalChildrenFound += childrenFound; // children, can be more than one
+		if (isEmpty(childrenFound)) {
+			done = true;
+			break;
 		}
-	} 
+		// Gather childrens children
+		
+		totalChildrenFound += (mapper(mapper(childrenFound, getChildrenOfChild), splice));
+	}
 	
-	*/
+	return totalChildrenFound;
+}
+
+
+// java+method://package/path/Main/Main(args)
+public tuple[bool, loc] findMethodInInheritanceHierarchy(loc method, M3 model, map[loc, set[loc]] modelHierarchy, loc encapsulatingClassOrInterface) {
+	str methodToFind = method.file; // gets last segment 
+
+	// TODO: might figure a great transitive closure out here :)
 	parentClasses = getParentHierarchy(encapsulatingClassOrInterface, model);
-	println("method to find in hierarchy <method> will search in <parentClasses>");
-	return false;
+	childClasses = getChildrenHierarchy(encapsulatingClassOrInterface, model);
+	println("method to find in hierarchy <method> will search in <childClasses>");
+	// TODO: tuple[bool found, loc newPath]
+	return <false, method>;
 }
 
 // TODO: for public methods only
