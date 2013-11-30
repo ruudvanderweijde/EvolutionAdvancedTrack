@@ -128,35 +128,65 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	return methodTransitions;
 }
 
-private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
-	set[MethodNameGroup] methodNameGroups = {};
-	
-	set[loc] methodLocators =  {m.definition | m <- model@modifiers, m.modifier == \public(), isMethod(m.definition)};
-	for (loc methodLocator <- methodLocators) {
-		try {
-			Declaration methodDeclaration = getMethodASTEclipse(methodLocator, model = model);
-			str methodName = methodDeclaration.name;
-			MethodSignature signature = methodSignature(methodName, [], methodDeclaration.\return, methodLocator, methodDeclaration.parameters, methodDeclaration.exceptions);
-			MethodNameGroup group = getMethodNameGroup(methodName, methodNameGroups);
-			methodNameGroups = methodNameGroups - {group};
-			group.methods += {signature};
-			methodNameGroups += group;
-		}
-		catch: println("Did not find a method declaration for method <methodLocator>");		
-	}
-	return methodNameGroups;
-}
 
-private MethodNameGroup getMethodNameGroup(str methodName, set[MethodNameGroup] methodNameGroups) {
-	MethodNameGroup group = nilGroup();
-	for (MethodNameGroup methodNameGroup <- methodNameGroups) {
-		if (methodNameGroup.name == methodName) {
-			group = methodNameGroup;
-			break;
-		}
-	}
-	if (isNil(group)) {
-		group = methodNameGroup(methodName, {});
-	}
-	return group;
+private set[MethodNameGroup] getPublicMethodNameGroupsForModel(M3 model) {
+    set[MethodNameGroup] methodNameGroups = {};
+    
+    // TODO: isnt m.modifer == \public() too specific? we would want public static (final) methods as well  
+    // set[loc] methodLocators =  {m.definition | m <- model@modifiers, m.modifier == \public(), isMethod(m.definition)};
+    set[loc] projectClasses = classes(model);
+    set[loc] projectInterfaces = interfaces(model);
+    /*
+        TODO: find out if interface and class inner classes and methods are represented
+        set[loc] projectInnerClasses = nestedClasses();
+    */
+    set[loc] projectClassesAndInterfaces = projectClasses + projectInterfaces;
+    methodModifiersMap = toMap(model@modifiers);
+    
+    //TODO: great stuff!
+    // iprintln(declaredMethods(model));
+    // iprintln(methodModifiersMap);
+    for (loc locator <- projectClassesAndInterfaces) {
+        //iprintln(locator);
+        // if (1 == 1) return {};
+        
+        // Public methods represented in the class or interface
+        set[loc] publicMethods = {m | m <- methods(model, locator), {\public()} <= (methodModifiersMap[m]? ? methodModifiersMap[m] : {})};
+        
+        // TODO why does this not work?
+        // set[Declaration] methodASTS = {getMethodASTEclipse(m, model=model) | m <- publicMethods};
+        //set[MethodNameGroup] groups = {getMethodNameGroup(n,
+        //iprintln("class: <locator> contains: <publicMethods>");
+        
+        for (m <- publicMethods) {
+            try {
+                Declaration methodAST = getMethodASTEclipse(m, model = model);
+            }
+            catch: iprintln("Method <m> could not be found");       
+        }
+        //iprintln(methodASTS); 
+    }
+    
+    
+    
+    /*
+    for (loc methodLocator <- methodLocators) {
+        try {
+            // Note: Kinda weird that we cant get ASTs for methods that are already found
+            Declaration methodDeclaration = getMethodASTEclipse(methodLocator, model = model);
+            str methodName = methodDeclaration.name;
+            // TODO: fill in correct modifiers per method 
+            MethodSignature signature = methodSignature(methodName, [], methodDeclaration.\return, methodLocator, methodDeclaration.parameters, methodDeclaration.exceptions);
+            MethodNameGroup group = getMethodNameGroup(methodName, methodNameGroups);
+            methodNameGroups = methodNameGroups - {group};
+            group.methods += {signature};
+            methodNameGroups += group;
+        }
+        catch: println("Did not find a method declaration for method <methodLocator>");     
+    }
+    
+    return methodNameGroups;
+    */
+    
+    return {};
 }
