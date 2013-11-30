@@ -231,6 +231,7 @@ public void viz() {
 }
 
 @doc { get a list of M3 models from file system }
+@memo
 public list[M3] getM3Models(list[loc] projects) {
 	return {
 		for (project <- projects) {

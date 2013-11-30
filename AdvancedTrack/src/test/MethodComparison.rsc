@@ -145,27 +145,10 @@ private set[loc] getParentHierarchy(loc classOrInterface, M3 model) {
 
 private set[loc] getChildrenHierarchy(loc classOrInterface, M3 model) {
 	set[loc] getChildrenOfChild(loc locator) { return getChildrenHierarchy(locator, model); }
-	set[value] splice(set[value] input) {
-		if (isEmpty(input)) return input;
-		return *input;
-	}
-	totalChildrenFound = {};
-	bool done = false;
-	while (!done) {
-		set[loc] childrenFound = { x.from | x <- model@extends, x.to == classOrInterface };
-		totalChildrenFound += childrenFound; // children, can be more than one
-		if (isEmpty(childrenFound)) {
-			done = true;
-			break;
-		}
-		// Gather childrens children
-		
-		totalChildrenFound += (mapper(mapper(childrenFound, getChildrenOfChild), splice));
-	}
-	
-	return totalChildrenFound;
+	set[loc] childrenFound = { x.from | x <- model@extends, x.to == classOrInterface }; // children, can be more than one
+	set[set[loc]] recursiveChildren = (mapper(childrenFound, getChildrenOfChild)); 	// Gather childrens children
+	return childrenFound + ({} | it + e | set[loc] e <- recursiveChildren);
 }
-
 
 // java+method://package/path/Main/Main(args)
 public tuple[bool, loc] findMethodInInheritanceHierarchy(loc method, M3 model, map[loc, set[loc]] modelHierarchy, loc encapsulatingClassOrInterface) {
