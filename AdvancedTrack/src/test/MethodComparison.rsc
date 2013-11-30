@@ -87,40 +87,27 @@ public list[NamelessParameter] extractParametersWithoutNames(MethodSignature sig
 }
 
 public set[MethodChange] getMethodChanges(M3 old, M3 new) {
-	map[loc, set[loc]] modelHierarchy1 = getModelHierarchy(old);
-	map[loc, set[loc]] modelHierarchy2 = getModelHierarchy(new);
+	map[loc, set[loc]] modelHierarchyOld = getModelHierarchy(old);
+	map[loc, set[loc]] modelHierarchyNew = getModelHierarchy(new);
 	
 	set[loc] deprecatedMethods = findDeprecatedMethods(new);
 	
 	set[MethodChange] methodTransitions = {};
-	for (loc classOrInterface <- modelHierarchy1) {
-		set[loc] methodsInClassOrInterface1 = modelHierarchy1[classOrInterface];
-		if (classOrInterface notin modelHierarchy2) {
+	for (loc classOrInterface <- modelHierarchyOld) {
+		set[loc] methodsInClassOrInterfaceOld = modelHierarchyOld[classOrInterface];
+		if (classOrInterface notin modelHierarchyNew) {
 			//TODO: find out if we need to count class change here.
 			continue;
 		}
-		set[loc] methodsInClassOrInterface2 = modelHierarchy2[classOrInterface];
+		set[loc] methodsInClassOrInterfaceNew = modelHierarchyNew[classOrInterface];
 	
-		for (loc method <- methodsInClassOrInterface1) {
-			println(method);
-			if (method in methodsInClassOrInterface2) {
-				
-				if (method in deprecatedMethods) {
-					methodTransitions += deprecated(method);
-				} else {
-					methodTransitions += unchanged(method);
-				}
-			
-				//methodTransitions += (method in deprecatedMethods) ? deprecated(method) : unchanged(method);
-			} else if (false) {
-				//TODO: implement changed signature
-				//Multiple changes possible?
-				//versionChanges += transition(method, newMethod);
-				changedMethods += methodNameGroup;
-			} else {
-				//It was deleted.
-				//methodTransitions += deleted(methodNameGroup);
-				int i = 0;
+		for (loc method <- methodsInClassOrInterfaceOld) {
+			if (method in methodsInClassOrInterfaceNew) {			
+				methodTransitions += (method in deprecatedMethods) ? deprecated(method) : unchanged(method);
+			}
+			else {
+				findMethodInInheritanceHierarchy(method, new, modelHierarchyNew, classOrInterface);
+				methodTransitions += deleted(method);
 			}
 		}
 	}
@@ -133,6 +120,54 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	return methodTransitions;
 }
 
+private set[loc] getParentHierarchy(set[loc] classesOrInterfaces, M3 model) {
+	set[loc] totalParentsFound = {};
+	for (x <- classesOrInterfaces) {
+		totalParentsFound += getParentHierarchy(x, model);
+	}
+	
+	return totalParentsFound;
+}
+
+private set[loc] getParentHierarchy(loc classOrInterface, M3 model) {
+	set[loc] totalParentsFound = {};
+	bool done = false;
+	while (!done) {
+		set[loc] parentsFound = { x.to | x <- model@extends, x.from == classOrInterface };
+		totalParentsFound += parentsFound; // parents, one max in java :)
+		if (isEmpty(parentsFound)) done = true;
+
+		totalParentsFound += getParentHierarchy(parentsFound, model);
+	}
+	
+	return totalParentsFound;
+}
+
+public bool findMethodInInheritanceHierarchy(loc method, M3 model, map[loc, set[loc]] modelHierarchy, loc encapsulatingClassOrInterface) {
+	str methodToFind = method.file; // gets last segment 
+	
+	// TODO: might figure a great transitive closure out here :)
+	/*
+	loc encapsulatingClassOrInterfaceToFind = encapsulatingClassOrInterface;
+	set[loc] hierarchyToCheck = {};
+	bool done = false;
+	while (!done) {
+		set[loc] childrenFound = { x.from | x <- model@extends, x.to == encapsulatingClassOrInterface };
+		hierarchyToCheck += childrenFound;
+		hierarchyToCheck += parentsFound;
+		if (isEmpty(childrenFound) && isEmpty(parentsFound)) done = true;
+		else {
+			int i = 0;
+		}
+	} 
+	
+	*/
+	parentClasses = getParentHierarchy(encapsulatingClassOrInterface, model);
+	println("method to find in hierarchy <method> will search in <parentClasses>");
+	return false;
+}
+
+// TODO: for public methods only
 private set[loc] findDeprecatedMethods(M3 model) {
 	rel[loc from, loc to] typeDependencies = model@typeDependency;
 	return {typeDependency.from | typeDependency <- typeDependencies, typeDependency.to == |java+interface:///java/lang/Deprecated|};
