@@ -1,4 +1,4 @@
-module \test::MethodComparison
+module diff::MethodComparison
 
 import lang::java::m3::Core;
 import lang::java::m3::AST;

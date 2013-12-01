@@ -1,4 +1,4 @@
-module \test::ProjectAST
+module diff::ProjectAST
 
 import IO;
 import List;
@@ -17,7 +17,7 @@ import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
-import \test::MethodComparison;
+import diff::MethodComparison;
 
 import analysis::m3::Core;
 
