@@ -28,7 +28,7 @@ data MethodSignature = nil()
 // represents a parameter without considering its name
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
-data MethodChange = unchanged(loc locator) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
+data MethodChange = unchanged(loc locator) | signatureChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
 
 public MethodSignature convertDeclarationToSignature(Declaration decl) {
 	MethodSignature signature = nil();
@@ -95,28 +95,66 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	
 	set[MethodChange] methodTransitions = {};
 	for (loc classOrInterface <- modelHierarchyOld) {
+		
 		set[loc] methodsInClassOrInterfaceOld = modelHierarchyOld[classOrInterface];
 		if (classOrInterface notin modelHierarchyNew) {
 			//TODO: find out if we need to count class change here.
 			continue;
 		}
+		
+		set[loc] changedMethods = {};
+		
 		set[loc] methodsInClassOrInterfaceNew = modelHierarchyNew[classOrInterface];
 		for (loc method <- methodsInClassOrInterfaceOld) {
 			if (method in methodsInClassOrInterfaceNew) {
-				methodTransitions += (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) ? deprecated(method) : unchanged(method);
+				if (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
+					methodTransitions += deprecated(method);
+					changedMethods += method;
+				} else {
+					methodTransitions += unchanged(method);
+				}
 			}
 			else {
-				methodTransitions += deleted(method);
+				loc changedMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
+				if (changedMethod != |file:///|) {
+					methodTransitions += signatureChanged(method, changedMethod);
+					changedMethods += method;
+				} else {
+					methodTransitions += deleted(method);
+				}
 			}
 		}
 		
-		set[loc] addedMethods = methodsInClassOrInterfaceNew - methodsInClassOrInterfaceOld;
+		set[loc] addedMethods = methodsInClassOrInterfaceNew - methodsInClassOrInterfaceOld - changedMethods;
 		for (loc addedMethod <- addedMethods) {
 			methodTransitions += added(addedMethod);
 		}
 	}
 	
 	return methodTransitions;
+}
+
+private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMethods) {
+	tuple[str methodName, list[str] parameters] methodNameAndParametersOld = extractMethodNameAndParameters(method);
+	for (loc newMethod <- newMethods) {
+		tuple[str methodName, list[str] parameters] methodNameAndParametersPossibleNew = extractMethodNameAndParameters(newMethod);
+		if (methodNameAndParametersPossibleNew.methodName == methodNameAndParametersOld.methodName && newMethod notin oldMethods) {
+			return newMethod;
+		}
+	}
+	return |file:///|; //Not found.
+}
+
+private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
+	str fullUri = method.uri;
+	
+	str methodSegment = last(split("/", fullUri));
+	int openingBracket = findFirst(methodSegment, "("), closingBracket = findFirst(methodSegment, ")");
+	str methodName = substring(methodSegment, 0, openingBracket);
+	str parametersSegment = substring(methodSegment, openingBracket+1, closingBracket);
+	
+	list[str] parameters = split(",", parametersSegment);
+	return <methodName, parameters>;
 }
 
 private set[loc] getParentHierarchy(loc classOrInterface, M3 model) {
