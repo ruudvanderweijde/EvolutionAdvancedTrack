@@ -337,15 +337,27 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 	for (MethodChange methodChange <- methodChanges) {
 		visit(methodChange) {
 			case unchanged(_): unchangedMethods += 1;
-			case deprecated(_): deprecatedMethods += 1;
-			case signatureChanged(_,_): signatureChangedMethods += 1;
-			case added(_): addedMethods += 1;
-			case deleted(_): deletedMethods += 1;
+			case deprecated(locator): {
+				println("\tDEPRECATED: <locator>");
+				deprecatedMethods += 1;
+			}
+			case signatureChanged(old,new): {
+				println("\tSIGNATURE CHANGE: <old> IS NOW: <new>");
+				signatureChangedMethods += 1;
+			}
+			case added(locator): {
+				println("\tADDED: <locator>");
+				addedMethods += 1;
+			}
+			case deleted(locator): {
+				println("\tDELETED: <locator>");
+				deletedMethods += 1;
+			}
 		}
 	}
 	int changedMethods = deprecatedMethods + signatureChangedMethods;
-	println("In total <unchangedMethods> methods are unchanged, <changedMethods> methods are changed, <addedMethods> methods have been added and <deletedMethods> methods have been deleted.");
-	println("Of these method changes, <deprecatedMethods> consisted of newly deprecated methods and <signatureChangedMethods> methods had a signature change");
+	println("-------In total <unchangedMethods> methods are unchanged, <changedMethods> methods are changed, <addedMethods> methods have been added and <deletedMethods> methods have been deleted.-------");
+	println("-------Of these method changes, <deprecatedMethods> consisted of newly deprecated methods and <signatureChangedMethods> methods had a signature change-------");
 }
 
 private set[Change] getFieldChanges(M3 old, M3 new) {
