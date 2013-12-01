@@ -75,9 +75,7 @@ public void run() {
 	
 	for (VersionTransition transition <- transitions) {
 		println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
-		//for (y <- result[transition]) {
-		//	iprintln("<y>: <size(result[x][y])>");
-		//}
+		printMethodChangeStatistics(transition.methodChanges);
 	}
 	
 	visualizeTransitions(transitions);
@@ -320,7 +318,7 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 
 private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
-	set[MethodChange] methodChanges = getMethodChanges(old, new);
+	set[MethodChange] methodChanges = getMethodChanges(old, new);	
 	set[Change] fieldChanges = getFieldChanges(old, new);
 	
 	//TODO: derive changed classes
@@ -333,6 +331,19 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	loc newVersion = new.id;
 	
 	return versionTransition(oldVersion, newVersion, classChanges, methodChanges, fieldChanges);
+}
+
+private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
+	int unchangedMethods = 0, changedMethods = 0, addedMethods = 0, deletedMethods = 0;
+	for (MethodChange methodChange <- methodChanges) {
+		visit(methodChange) {
+			case unchanged(_): unchangedMethods += 1;
+			case deprecated(_): changedMethods += 1;
+			case added(_): addedMethods += 1;
+			case deleted(_): deletedMethods += 1;
+		}
+	}
+	println("In total <unchangedMethods> methods are unchanged, <changedMethods> methods are changed, <addedMethods> methods have been added and <deletedMethods> methods have been deleted.");
 }
 
 private set[Change] getFieldChanges(M3 old, M3 new) {

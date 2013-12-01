@@ -28,7 +28,7 @@ data MethodSignature = nil()
 // represents a parameter without considering its name
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
-data MethodChange = unchanged(loc locator) | hierarchicalMove(loc previous, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
+data MethodChange = unchanged(loc locator) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
 
 public MethodSignature convertDeclarationToSignature(Declaration decl) {
 	MethodSignature signature = nil();
@@ -90,7 +90,8 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	map[loc, set[loc]] modelHierarchyOld = getModelHierarchy(old);
 	map[loc, set[loc]] modelHierarchyNew = getModelHierarchy(new);
 	
-	set[loc] deprecatedMethods = findDeprecatedMethods(new);
+	set[loc] deprecatedMethodsOld = findDeprecatedMethods(old);
+	set[loc] deprecatedMethodsNew = findDeprecatedMethods(new);
 	
 	set[MethodChange] methodTransitions = {};
 	for (loc classOrInterface <- modelHierarchyOld) {
@@ -100,28 +101,21 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 			continue;
 		}
 		set[loc] methodsInClassOrInterfaceNew = modelHierarchyNew[classOrInterface];
-	
 		for (loc method <- methodsInClassOrInterfaceOld) {
-			if (method in methodsInClassOrInterfaceNew) {			
-				methodTransitions += (method in deprecatedMethods) ? deprecated(method) : unchanged(method);
+			if (method in methodsInClassOrInterfaceNew) {
+				methodTransitions += (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) ? deprecated(method) : unchanged(method);
 			}
 			else {
-				tuple[bool found, loc newPath] methodInHierarchy = findMethodInInheritanceHierarchy(method, new, modelHierarchyNew, classOrInterface);
-				if (methodInHierarchy.found) {
-					methodTransitions += hierarchicalMove(method, methodInHierarchy.newPath);
-				}
-				else {
-					methodTransitions += deleted(method);
-				}
+				methodTransitions += deleted(method);
 			}
+		}
+		
+		set[loc] addedMethods = methodsInClassOrInterfaceNew - methodsInClassOrInterfaceOld;
+		for (loc addedMethod <- addedMethods) {
+			methodTransitions += added(addedMethod);
 		}
 	}
 	
-	//set[MethodNameGroup] addedMethods = modelHierarchy2 - modelHierarchy1;
-	//for (MethodNameGroup addedMethod <- addedMethods) {
-	//	methodTransitions += addition(addedMethod);
-	//}
-	//
 	return methodTransitions;
 }
 
