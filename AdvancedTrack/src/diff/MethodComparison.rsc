@@ -95,7 +95,6 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	
 	set[MethodChange] methodTransitions = {};
 	for (loc classOrInterface <- modelHierarchyOld) {
-		
 		set[loc] methodsInClassOrInterfaceOld = modelHierarchyOld[classOrInterface];
 		if (classOrInterface notin modelHierarchyNew) {
 			//TODO: find out if we need to count class change here.
@@ -106,28 +105,32 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 		
 		set[loc] methodsInClassOrInterfaceNew = modelHierarchyNew[classOrInterface];
 		for (loc method <- methodsInClassOrInterfaceOld) {
-			if (method in methodsInClassOrInterfaceNew) {
-				if (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
-					methodTransitions += deprecated(method);
+				if (method == |java+method:///com/google/common/collect/ConcurrentHashMultiset/create(com.google.common.collect.GenericMapMaker)|) {
+					int i = 0;
+				}
+				loc newMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
+				if (newMethod != |file:///|) {
+					println("change <method> to <newMethod>");
+					methodTransitions += signatureChanged(method, newMethod);
 					changedMethods += method;
-				} else {
+				}
+				elseif (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
+					methodTransitions += deprecated(method);
+                    changedMethods += method;
+	            } 
+				else {
 					methodTransitions += unchanged(method);
 				}
-			}
-			else {
-				loc changedMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
-				if (changedMethod != |file:///|) {
-					methodTransitions += signatureChanged(method, changedMethod);
-					changedMethods += method;
-				} else {
-					methodTransitions += deleted(method);
-				}
-			}
 		}
 		
 		set[loc] addedMethods = methodsInClassOrInterfaceNew - methodsInClassOrInterfaceOld - changedMethods;
 		for (loc addedMethod <- addedMethods) {
 			methodTransitions += added(addedMethod);
+		}
+
+		set[loc] deletedMethods = methodsInClassOrInterfaceOld - methodsInClassOrInterfaceNew - changedMethods;
+		for (loc deletedMethod <- deletedMethods) {
+			methodTransitions += deleted(deletedMethod);
 		}
 	}
 	
@@ -135,14 +138,30 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 }
 
 private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMethods) {
-	tuple[str methodName, list[str] parameters] methodNameAndParametersOld = extractMethodNameAndParameters(method);
-	for (loc newMethod <- newMethods) {
-		tuple[str methodName, list[str] parameters] methodNameAndParametersPossibleNew = extractMethodNameAndParameters(newMethod);
-		if (methodNameAndParametersPossibleNew.methodName == methodNameAndParametersOld.methodName && newMethod notin oldMethods) {
-			return newMethod;
-		}
-	}
-	return |file:///|; //Not found.
+    tuple[str methodName, list[str] parameters] methodNameAndParametersOld = extractMethodNameAndParameters(method);
+  
+        // Get all old methods with the same name
+        set[loc] methodsWithEqualNameOld = { m | m <- oldMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0] }; 
+        set[loc] methodsWithEqualNameNew = { m | m <- newMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0] };
+        bool equalSize = size(methodsWithEqualNameOld) == size(methodsWithEqualNameNew);
+        // No overloading in case equalSize == 1
+        // TODO: no relation from old method to new method?
+      	if (equalSize) {
+      		loc oldMethod = getOneFrom(methodsWithEqualNameOld);
+      		loc newMethod = getOneFrom(methodsWithEqualNameNew);
+      		
+      		list[str] oldParams = extractMethodNameAndParameters(oldMethod)[1];
+      		list[str] newParams = extractMethodNameAndParameters(newMethod)[1];
+      	
+			// check if the size is one (no overloading) and the parameters differ
+			// TODO: take into account different parameter sizes
+      		if (size(methodsWithEqualNameOld) == 1 && oldParams != newParams) {
+      			println("sig change!!!!!");       
+            	return newMethod;
+            } 
+        }       
+
+    return |file:///|;
 }
 
 private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
