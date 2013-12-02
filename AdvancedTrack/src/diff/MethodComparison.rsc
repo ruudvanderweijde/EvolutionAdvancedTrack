@@ -115,12 +115,18 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 				}
 			}
 			else {
-				loc changedMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
-				if (changedMethod != |file:///|) {
-					methodTransitions += signatureChanged(method, changedMethod);
+				tuple[set[loc] added, set[loc] deleted, set[tuple[loc old, loc new]] changed] sigs = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
+				for (change <- sigs.changed) {
+					methodTransitions += signatureChanged(change.old, change.new);
 					changedMethods += method;
-				} else {
-					methodTransitions += deleted(method);
+				}
+				
+				for (delete <- sigs.deleted) {
+					methodTransitions += deleted(delete);
+				}
+				
+				for (add <- sigs.added) {
+					methodTransitions += added(add);
 				}
 			}
 		}
@@ -134,7 +140,7 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	return methodTransitions;
 }
 
-private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMethods) {
+/*private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMethods) {
 	tuple[str methodName, list[str] parameters] methodNameAndParametersOld = extractMethodNameAndParameters(method);
 	for (loc newMethod <- newMethods) {
 		tuple[str methodName, list[str] parameters] methodNameAndParametersPossibleNew = extractMethodNameAndParameters(newMethod);
@@ -143,6 +149,33 @@ private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMet
 		}
 	}
 	return |file:///|; //Not found.
+}*/
+
+private tuple[set[loc], set[loc], set[tuple[loc old, loc new]]] findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMethods) {
+    tuple[str methodName, list[str] parameters] methodNameAndParametersOld = extractMethodNameAndParameters(method);
+    
+        // Get all old methods with the same name
+        set[loc] methodsWithEqualNameOld = { m | m <- oldMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0] }; 
+        set[loc] methodsWithEqualNameNew = { m | m <- newMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0] };
+        bool equalSize = size(methodsWithEqualNameOld) == size(methodsWithEqualNameNew);
+		set[loc] added = {}, deleted = {};
+		set[tuple[loc old, loc new]] changed = {};        
+        // No overloading in case equalSize == 1
+        // TODO: no relation from old method to new method?
+		bool change = false;  		
+      	if (equalSize) {
+      		if (size(methodsWithEqualNameOld) == 1) {       
+            	changed += <getOneFrom(methodsWithEqualNameOld), getOneFrom(methodsWithEqualNameNew)>;
+            	change = true;
+            }
+        }       
+        
+        if (!change) {
+			deleted += methodsWithEqualNameOld - methodsWithEqualNameNew;
+			added += methodsWithEqualNameNew - methodsWithEqualNameOld;
+        }
+
+    return <added, deleted, changed>;
 }
 
 private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
