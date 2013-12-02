@@ -203,14 +203,11 @@ private set[loc] findDeprecatedMethods(M3 model) {
 
 private map[loc, set[loc]] getModelHierarchy(M3 model) {
     map[loc class, set[loc] methods] methodsPerClassInterface = ();
-    
-    set[loc] projectClasses = classes(model);
-    set[loc] projectInterfaces = interfaces(model);
-    /*
+        /*
         TODO: find out if interface and class inner classes and methods are represented
         set[loc] projectInnerClasses = nestedClasses();
     */
-    set[loc] projectClassesAndInterfaces = projectClasses + projectInterfaces;
+    set[loc] projectClassesAndInterfaces = getPublicClassesAndInterfacesForModel(model);
     methodModifiersMap = toMap(model@modifiers);
     
     //TODO: great stuff!
@@ -222,4 +219,8 @@ private map[loc, set[loc]] getModelHierarchy(M3 model) {
         methodsPerClassInterface += (locator:publicMethods);
     }
     return methodsPerClassInterface;
+}
+
+private set[loc] getPublicClassesAndInterfacesForModel(M3 model) {
+	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition) || isInterface(m.definition)};
 }
