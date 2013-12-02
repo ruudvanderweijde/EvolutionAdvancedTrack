@@ -41,7 +41,7 @@ data VersionTransition = versionTransition(loc oldVersion,
 public list[loc] projects = [
 							//|project://GuavaRelease01|,
 							//|project://GuavaRelease02|,
-							//|project://GuavaRelease03|
+							//|project://GuavaRelease03|,
 							//|project://GuavaRelease05|,
 							//|project://GuavaRelease06|,
 							//|project://GuavaRelease07|,

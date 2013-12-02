@@ -196,8 +196,8 @@ public tuple[bool, loc] findMethodInInheritanceHierarchy(loc method, M3 model, m
 
 // TODO: for public methods only
 private set[loc] findDeprecatedMethods(M3 model) {
-	rel[loc from, loc to] typeDependencies = model@typeDependency;
-	return {typeDependency.from | typeDependency <- typeDependencies, typeDependency.to == |java+interface:///java/lang/Deprecated|};
+	rel[loc declaration, loc annotation] annotationRel = model@annotations;
+	return {annotationTuple.declaration | annotationTuple <- annotationRel, annotationTuple.annotation == |java+interface:///java/lang/Deprecated|};
 }
 
 
