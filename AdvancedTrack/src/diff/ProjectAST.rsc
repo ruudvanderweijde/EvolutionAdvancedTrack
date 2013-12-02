@@ -28,6 +28,8 @@ import util::FileSystem;
 import analysis::graphs::Graph;
 extend analysis::m3::TypeSymbol;
 
+public loc cacheDir = |project://AdvancedTrack/cache|;
+
 data Change = transition(loc old, loc new) | addition(loc new) | deletion(loc old);
 
 data VersionTransition = versionTransition(loc oldVersion,
@@ -70,15 +72,26 @@ public void logMessage(str message, int level) {
 }
 
 public void run() {
+	logMessage("Getting m3 models...", 1);
 	list[M3] models = getM3Models(projects);
+	logMessage("Comparing m3 models... ", 1);
 	list[VersionTransition] transitions = compareM3Models(models);
+
+	// write to cache 
+	logMessage("Writing to cache", 1);
+	writeTransitionsToCache(transitions);
 	
+	logMessage("Display results", 1);
 	for (VersionTransition transition <- transitions) {
 		println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
 		printMethodChangeStatistics(transition.methodChanges);
 	}
-	
-	visualizeTransitions(transitions);
+}
+
+public void runCached() {
+	// read from cache
+	list[VersionTransition] transitions = readTransitionsFromCache();
+	iprintln(transitions);
 }
 
 private void visualizeTransitions(list[VersionTransition] transitions) {
@@ -235,6 +248,16 @@ public list[M3] getM3Models(list[loc] projects) {
 			append(readBinaryValueFile(|project://AdvancedTrack/m3/|+"<project.authority>.bin.m3"));
 		}	
 	}
+}
+
+@doc { Write transition model to filesystem }
+public void writeTransitionsToCache(list[VersionTransition] transitions) {
+	writeBinaryValueFile(cacheDir+"Transitions.bin.trans", transitions);
+}
+
+@doc { Read transition model from filesystem }
+public list[VersionTransition] readTransitionsFromCache() {
+	return readBinaryValueFile(#list[VersionTransition], cacheDir+"Transitions.bin.trans");
 }
 
 @doc { write m3 models to file system as binary files }
