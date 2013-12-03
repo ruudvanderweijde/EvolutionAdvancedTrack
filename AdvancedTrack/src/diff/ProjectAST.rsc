@@ -40,18 +40,18 @@ data VersionTransition = versionTransition(loc oldVersion,
 										   set[Change] fieldChanges);
 
 public list[loc] projects = [
-							|project://GuavaRelease01|,
-							|project://GuavaRelease02|,
-							|project://GuavaRelease03|,
-							|project://GuavaRelease05|,
-							|project://GuavaRelease06|,
-							|project://GuavaRelease07|,
-							|project://GuavaRelease08|,
-							|project://GuavaRelease09|,
-							|project://GuavaRelease10.0|,
-							|project://GuavaRelease11.0|,
-							|project://GuavaRelease12.0|,
-							|project://GuavaRelease13.0|,
+							//|project://GuavaRelease01|,
+							//|project://GuavaRelease02|,
+							//|project://GuavaRelease03|,
+							//|project://GuavaRelease05|,
+							//|project://GuavaRelease06|,
+							//|project://GuavaRelease07|,
+							//|project://GuavaRelease08|,
+							//|project://GuavaRelease09|,
+							//|project://GuavaRelease10.0|,
+							//|project://GuavaRelease11.0|,
+							//|project://GuavaRelease12.0|,
+							//|project://GuavaRelease13.0|,
 							|project://GuavaRelease14.0|,
 							//|project://GuavaRelease14.0.1|,
 							|project://GuavaRelease15.0|
@@ -431,6 +431,7 @@ public void viz() {
 }
 
 @doc { get a list of M3 models from file system }
+@memo
 public list[M3] getM3Models(list[loc] projects) {
 	return {
 		for (project <- projects) {

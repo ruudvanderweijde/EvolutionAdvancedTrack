@@ -103,10 +103,8 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	set[MethodChange] methodTransitions = {};
 	for (loc classOrInterface <- modelHierarchyOld) {
 		class = classOrInterface;
-		//iprintln("class = <class>");
 		assert isClass(class) || isInterface(class);
 		package = getClassPackage(old, class);
-		//iprintln("package = <package>");
 		assert isPackage(package);
 		
 		set[loc] methodsInClassOrInterfaceOld = modelHierarchyOld[classOrInterface];
@@ -119,35 +117,31 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 		
 		set[loc] methodsInClassOrInterfaceNew = modelHierarchyNew[classOrInterface];
 		for (loc method <- methodsInClassOrInterfaceOld) {
-			if (method in methodsInClassOrInterfaceNew) {
-				if (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
-					MethodChange deprecated = deprecated(method);
-					deprecated@class = class;
-					deprecated@package = package;
-					methodTransitions += deprecated;
-					changedMethods += method;
-				} else {
-					MethodChange unchanged = unchanged(method);
-					unchanged@class = class;
-					unchanged@package = package;
-					methodTransitions += unchanged;
+				if (method == |java+method:///com/google/common/collect/ConcurrentHashMultiset/create(com.google.common.collect.GenericMapMaker)|) {
+					int i = 0;
 				}
-			}
-			else {
-				loc changedMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
-				if (changedMethod != |file:///|) {
+				loc newMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
+				if (newMethod != |file:///|) {
+					println("change <method> to <newMethod>");
 					MethodChange signatureChanged = signatureChanged(method, changedMethod);
 					signatureChanged@class = class;
 					signatureChanged@package = package; 
 					methodTransitions += signatureChanged;
 					changedMethods += method;
-				} else {
-					MethodChange deleted = deleted(method);
-					deleted@class = class;
-					deleted@package = package;
-					methodTransitions += deleted;
 				}
-			}
+				elseif (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
+					MethodChange deprecated = deprecated(method);
+					deprecated@class = class;
+					deprecated@package = package;
+					methodTransitions += deprecated;
+                    changedMethods += method;
+	            } 
+				else {
+					MethodChange unchanged = unchanged(method);
+					unchanged@class = class;
+					unchanged@package = package;
+					methodTransitions += unchanged;
+				}
 		}
 		
 		set[loc] addedMethods = methodsInClassOrInterfaceNew - methodsInClassOrInterfaceOld - changedMethods;
@@ -157,20 +151,41 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 			added@package = package;
 			methodTransitions += added;;
 		}
+
+		set[loc] deletedMethods = methodsInClassOrInterfaceOld - methodsInClassOrInterfaceNew - changedMethods;
+		for (loc deletedMethod <- deletedMethods) {
+			methodTransitions += deleted(deletedMethod);
+		}
 	}
 	
 	return methodTransitions;
 }
 
 private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMethods) {
-	tuple[str methodName, list[str] parameters] methodNameAndParametersOld = extractMethodNameAndParameters(method);
-	for (loc newMethod <- newMethods) {
-		tuple[str methodName, list[str] parameters] methodNameAndParametersPossibleNew = extractMethodNameAndParameters(newMethod);
-		if (methodNameAndParametersPossibleNew.methodName == methodNameAndParametersOld.methodName && newMethod notin oldMethods) {
-			return newMethod;
-		}
-	}
-	return |file:///|; //Not found.
+    tuple[str methodName, list[str] parameters] methodNameAndParametersOld = extractMethodNameAndParameters(method);
+  
+        // Get all old methods with the same name
+        set[loc] methodsWithEqualNameOld = { m | m <- oldMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0] }; 
+        set[loc] methodsWithEqualNameNew = { m | m <- newMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0] };
+        bool equalSize = size(methodsWithEqualNameOld) == size(methodsWithEqualNameNew);
+        // No overloading in case equalSize == 1
+        // TODO: no relation from old method to new method?
+      	if (equalSize) {
+      		loc oldMethod = getOneFrom(methodsWithEqualNameOld);
+      		loc newMethod = getOneFrom(methodsWithEqualNameNew);
+      		
+      		list[str] oldParams = extractMethodNameAndParameters(oldMethod)[1];
+      		list[str] newParams = extractMethodNameAndParameters(newMethod)[1];
+      	
+			// check if the size is one (no overloading) and the parameters differ
+			// TODO: take into account different parameter sizes
+      		if (size(methodsWithEqualNameOld) == 1 && oldParams != newParams) {
+      			println("sig change!!!!!");       
+            	return newMethod;
+            } 
+        }       
+
+    return |file:///|;
 }
 
 private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
@@ -224,8 +239,8 @@ public tuple[bool, loc] findMethodInInheritanceHierarchy(loc method, M3 model, m
 
 // TODO: for public methods only
 private set[loc] findDeprecatedMethods(M3 model) {
-	rel[loc from, loc to] typeDependencies = model@typeDependency;
-	return {typeDependency.from | typeDependency <- typeDependencies, typeDependency.to == |java+interface:///java/lang/Deprecated|};
+	rel[loc declaration, loc annotation] annotationRel = model@annotations;
+	return {annotationTuple.declaration | annotationTuple <- annotationRel, annotationTuple.annotation == |java+interface:///java/lang/Deprecated|};
 }
 
 
