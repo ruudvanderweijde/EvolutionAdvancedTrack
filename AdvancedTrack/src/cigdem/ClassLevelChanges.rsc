@@ -113,17 +113,21 @@ public bool isFieldTypeChanged (M3 oldModel, M3 newModel, loc fieldName) {
 }
 
 
-set [loc] getDeprecatedSetForField(rel [loc from, loc to] dependencies, loc fieldName) {
+set [loc] getDeprecatedSetForLocation(rel [loc from, loc to] dependencies, loc locName) {
 	return {dependency.from | dependency <- dependencies, 
  					dependency.to == |java+interface:///java/lang/Deprecated|,
- 					dependency.from == fieldName};
+ 					dependency.from == locName};
+}
+
+
+
+set [loc] getDeprecatedSetForField(rel [loc from, loc to] dependencies, loc fieldName) {
+	return getDeprecatedSetForLocation(dependencies, fieldName);
 }
 
 
 set [loc] getDeprecatedSetForClass(rel [loc from, loc to] dependencies, loc className) {
-	return {dependency.from | dependency <- dependencies, 
- 					dependency.to == |java+interface:///java/lang/Deprecated|,
- 					dependency.from == className};
+	return getDeprecatedSetForLocation(dependencies, className);
 }
 
 
@@ -146,10 +150,23 @@ public bool isFieldDeprecated(M3 oldModel, M3 newModel, loc fieldName) {
 }
 
 
-public void findAllFieldChanges(list [loc] projectList) {
-	list [M3] models = getM3Models(projectList);
-	M3 oldModel = models[0];
-	M3 newModel = models[1];
+// This method returns the set of FieldChanges form added and removed fields only 
+public set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel) {
+	set [FieldChange] addRemFieldsSet = {};
+	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
+	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
+	set [loc] addedFields = newPublicFields - oldPublicFields;
+	set [loc] removedFields = oldPublicFields - newPublicFields;
+	for ( addedField <- addedFields) { 	addRemFieldsSet = addRemFieldsSet + added(addedField); }
+	for ( removedField <- removedFields) { 	addRemFieldsSet = addRemFieldsSet + deleted(removedField); }	
+	return addRemFieldsSet;
+}
+
+
+// This method returns the set of FieldChanges for fields which are changed 
+// (modifier, type or deprecated)
+public set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel) {
+	set [FieldChange] changedFieldsSet = {};
 	set [loc] oldFields = getPublicFieldsForModel(oldModel);
 	set [loc] newFields = getPublicFieldsForModel(newModel);
 	set [loc] commonFields = oldFields & newFields;
@@ -158,14 +175,19 @@ public void findAllFieldChanges(list [loc] projectList) {
 		{ 	if  (	isFieldModifierChanged(oldModel, newModel, oneField) ||
 					isFieldTypeChanged(oldModel, newModel, oneField) 	 ||
 					isFieldDeprecated(oldModel, newModel, oneField) ) {
-				fieldChanges = fieldChanges + changed(oneField);	
+				changedFieldsSet = changedFieldsSet + changed(oneField);	
 			}		
 		}
+	return changedFieldsSet ;
 }
 
-// Find added and removed classes, and also the classes for which modifiers 
-// have changed or are deprecated etc.
-public void findClassChanges(M3 oldModel, M3 newModel) {
+
+
+
+// Return the set of ClassChanges for added and removed classes, and also 
+// for the classes for which modifiers have changed or are deprecated
+public set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel) {
+	set [loc] changedClassesSet = {};
 	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel);
 	set [loc] newClasses = getPublicClassesAndInterfaces(newModel);
 	set [loc] addedClasses = newClasses - oldClasses;
@@ -178,26 +200,35 @@ public void findClassChanges(M3 oldModel, M3 newModel) {
 	for (loc oneClass <- commonClasses)  
 		{ 	if  (	isClassModifierChanged(oldModel, newModel, oneClass) ||
 					isClassDeprecated(oldModel, newModel, oneClass) ) {
-				classChanges = classChanges + changed(oneClass);	
+				changedClassesSet = changedClassesSet + changed(oneClass);	
 			}		
 		}
+	return changedClassesSet;
 }
 
-
-
-public void findClassLevelChanges(M3 oldModel, M3 newModel) {
+// Get the classes which will be marked as changed because they contain
+// a changed, deleted or removed field.
+public set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel) {
+	set [loc] changedClassesSet = {};
 	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
 	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
 	set [loc] addedFields = newPublicFields - oldPublicFields;
 	set [loc] removedFields = oldPublicFields - newPublicFields;
-	logMessage("Number of added public fields: <size(addedFields)>:", 2);
-	logMessage("Number of removed public fields: <size(removedFields)>", 2);	
-	for ( addedField <- addedFields) { 	fieldChanges = fieldChanges + added(addedField); }
-	for ( removedField <- removedFields) { 	fieldChanges = fieldChanges + deleted(removedField); }	
 	set [loc] changedNewClasses = {getClassOfAField(newModel, field) | field <- addedFields};
 	set [loc] changedOldClasses = {getClassOfAField(oldModel, field) | field <- removedFields};
 	logMessage("The number of changed classes because of an added field: <size(changedNewClasses)>", 2);
 	logMessage("The number of changed classes because of a removed field: <size(changedOldClasses)>", 2);	
+	for (loc oneClass <- changedNewClasses)  { 	changedClassesSet = changedClassesSet + changed(oneClass); }		
+	for (loc oneClass <- changedOldClasses)  { 	changedClassesSet = changedClassesSet + changed(oneClass); }			
+}
+
+
+public void findAllFieldAndClassChanges(list [M3] projectList) {
+	list [M3] models = getM3Models(projectList);
+	M3 oldModel = models[0];
+	M3 newModel = models[1];
+	findClassChanges(oldModel, newModel);
+	
 }
 
 
