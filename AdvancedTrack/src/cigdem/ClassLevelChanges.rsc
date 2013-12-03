@@ -11,7 +11,15 @@ import util::Math;
 import diff::Utils;
 import diff::ProjectAST;
 
-data FieldChange = unchanged(loc locator) | typeChanged(loc old, loc new) | modifierChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
+data FieldChange = 	unchanged(loc locator)	| changed(loc locator) 
+					| added(loc locator) 	| deleted(loc locator);
+
+set [FieldChange] fieldChanges = {};
+
+data ClassChange = unchanged(loc locator)	| changed(loc locator) 
+					| added(loc locator) 	| deleted(loc locator);
+
+set [ClassChange] classChanges = {};
 
 public map [loc, str] androidVersionToLevel= (
 		|project://platform_development-android-1.6_r1|: "Level 4",
@@ -24,12 +32,6 @@ public map [loc, str] androidVersionToLevel= (
 
 
 public list[loc] androidProjects = [
-							//|project://platform_development-android-1.6_r1|
-							 //,
-							//|project://platform_development-android-1.6_r2|
-							//,
-							//|project://platform_development-android-2.0_r1|
-							//,
 							//|project://platform_development-android-2.1_r1|
 							//,
 							|project://platform_development-android-2.2_r1|
@@ -48,8 +50,8 @@ public list [loc] changedProjects = [|project://ChangedProject01|,
 									|project://ChangedProject02|
 									];									
 
-public set[loc] getPublicClassesForModel(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition)};
+public set[loc] getPublicClassesAndInterfaces(M3 model) {
+	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) ) };
 }
 
 
@@ -81,9 +83,21 @@ public set [Modifier] getModifiersOfField(M3 theModel, loc fieldName) {
 
 
 
+public set [Modifier] getModifiersOfClass(M3 theModel, loc className) {
+	return {model.modifier | model <-theModel@modifiers, model.definition == className};
+}
+
+
+
 public bool isFieldModifierChanged (M3 oldModel, M3 newModel, loc fieldName) {
 	return (getModifiersOfField(oldModel, fieldName) != getModifiersOfField(newModel, fieldName)) ;
 }
+
+
+public bool isClassModifierChanged (M3 oldModel, M3 newModel, loc className) {
+	return (getModifiersOfClass(oldModel, className) != getModifiersOfClass(newModel, className)) ;
+}
+
 
 
 public loc getTypeOfField (M3 theModel, loc fieldName) {
@@ -107,6 +121,22 @@ set [loc] getDeprecatedSetForField(rel [loc from, loc to] dependencies, loc fiel
 }
 
 
+set [loc] getDeprecatedSetForClass(rel [loc from, loc to] dependencies, loc className) {
+	return {dependency.from | dependency <- dependencies, 
+ 					dependency.to == |java+interface:///java/lang/Deprecated|,
+ 					dependency.from == className};
+}
+
+
+public bool isClassDeprecated(M3 oldModel, M3 newModel, loc className) {
+ rel[loc from, loc to] newDependencies = newModel@typeDependency;
+ rel[loc from, loc to] oldDependencies = oldModel@typeDependency;
+ return (! isEmpty( getDeprecatedSetForClass(newDependencies, className)) &&
+ 		isEmpty( getDeprecatedSetForClass(oldDependencies, className)) 
+ 		) ;
+}
+
+
 
 public bool isFieldDeprecated(M3 oldModel, M3 newModel, loc fieldName) {
  rel[loc from, loc to] newDependencies = newModel@typeDependency;
@@ -121,55 +151,54 @@ public void findAllFieldChanges(list [loc] projectList) {
 	list [M3] models = getM3Models(projectList);
 	M3 oldModel = models[0];
 	M3 newModel = models[1];
-	//println("Type dependency of old model: <oldModel@typeDependency>");
-	set [loc] oldFields = fields(oldModel);
-	set [loc] newFields = fields(newModel);
+	set [loc] oldFields = getPublicFieldsForModel(oldModel);
+	set [loc] newFields = getPublicFieldsForModel(newModel);
 	set [loc] commonFields = oldFields & newFields;
-	println("Number of common fields: <size(commonFields)>");
+	logMessage("Number of common fields: <size(commonFields)>", 2);
 	for (loc oneField <- commonFields)  
-		{ 
-			if  (isFieldModifierChanged(oldModel, newModel, oneField)) {
-				println ("The old modifiers for field: <oneField> are: <getModifiersOfField(oldModel, oneField)>"); 
-		  		println ("The new modifiers for field: <oneField> are: <getModifiersOfField(newModel, oneField)>"); 
+		{ 	if  (	isFieldModifierChanged(oldModel, newModel, oneField) ||
+					isFieldTypeChanged(oldModel, newModel, oneField) 	 ||
+					isFieldDeprecated(oldModel, newModel, oneField) ) {
+				fieldChanges = fieldChanges + changed(oneField);	
 			}		
-			if  (isFieldTypeChanged(oldModel, newModel, oneField)) {
-				println ("The old type of the field: <oneField> is: <getTypeOfField(oldModel, oneField)>"); 
-		  		println ("The new type of the field: <oneField> is: <getTypeOfField(newModel, oneField)>"); 
+		}
+}
+
+// Find added and removed classes, and also the classes for which modifiers 
+// have changed or are deprecated etc.
+public void findClassChanges(M3 oldModel, M3 newModel) {
+	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel);
+	set [loc] newClasses = getPublicClassesAndInterfaces(newModel);
+	set [loc] addedClasses = newClasses - oldClasses;
+	set [loc] removedClasses = oldClasses  - newClasses;
+	set [loc] commonClasses = oldClasses & newClasses;
+	for ( addedClass <- addedClasses) { classChanges = classChanges + added(addedClass); }
+	for ( removedClass <- removedClasses) { classChanges = classChanges + deleted(removedClass); }
+	logMessage("The number of added classes : <size(addedClasses)>", 2); 
+	logMessage("The number of removed classes : <size(removedClasses)>", 2); 	
+	for (loc oneClass <- commonClasses)  
+		{ 	if  (	isClassModifierChanged(oldModel, newModel, oneClass) ||
+					isClassDeprecated(oldModel, newModel, oneClass) ) {
+				classChanges = classChanges + changed(oneClass);	
 			}		
-			if (isFieldDeprecated(oldModel, newModel, oneField)) {
-				println ("The field: <oneField> is deprecated."); 			
-			}
-			
 		}
 }
 
 
 
-public void findClassLevelChanges(list [loc] myTestProjects) {
-	println("Starting...");
-	list [M3] models = getM3Models(myTestProjects);
-	M3 oldModel = models[0];
-	M3 newModel = models[1];
-	println("Models are retrieved.");
-	println("Changes between two projects: <myTestProjects[0]> and <myTestProjects[1]>");
+public void findClassLevelChanges(M3 oldModel, M3 newModel) {
 	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
 	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
 	set [loc] addedFields = newPublicFields - oldPublicFields;
 	set [loc] removedFields = oldPublicFields - newPublicFields;
-	println("Number of added public fields: <size(addedFields)>:");
-	println("Number of removed public fields: <size(removedFields)>");	
+	logMessage("Number of added public fields: <size(addedFields)>:", 2);
+	logMessage("Number of removed public fields: <size(removedFields)>", 2);	
+	for ( addedField <- addedFields) { 	fieldChanges = fieldChanges + added(addedField); }
+	for ( removedField <- removedFields) { 	fieldChanges = fieldChanges + deleted(removedField); }	
 	set [loc] changedNewClasses = {getClassOfAField(newModel, field) | field <- addedFields};
 	set [loc] changedOldClasses = {getClassOfAField(oldModel, field) | field <- removedFields};
-	println("The number of changed classes because of an added field: <size(changedNewClasses)>");
-	println("The number of changed classes because of a removed field: <size(changedOldClasses)>");	
-	set [loc] addedClasses = getPublicClassesForModel(newModel) - getPublicClassesForModel(oldModel);
-	set [loc] removedClasses = getPublicClassesForModel(oldModel) - getPublicClassesForModel(newModel);
-	println("The number of classes in the new model: <size(getPublicClassesForModel(newModel))>"); 
-	println("The number of added classes : <size(addedClasses)>"); 
-	println("The number of removed classes : <size(removedClasses)>"); 
-	
-	println("List of packages for new model :");
-	iprintln(sort(packages(newModel)));	
+	logMessage("The number of changed classes because of an added field: <size(changedNewClasses)>", 2);
+	logMessage("The number of changed classes because of a removed field: <size(changedOldClasses)>", 2);	
 }
 
 

@@ -37,4 +37,16 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>rascal_eclipse.term_nature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>deletedstuff.xml</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/TestCases/deletedstuff.xml</locationURI>
+		</link>
+		<link>
+			<name>deprecatedsuper.xml</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/TestCases/deprecatedsuper.xml</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

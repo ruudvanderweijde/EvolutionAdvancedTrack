@@ -76,10 +76,10 @@ public void run() {
 	writeTransitionsToCache(transitions);
 	
 	logMessage("Display results", 1);
-	//for (VersionTransition transition <- transitions) {
-	//	println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
-	//	printMethodChangeStatistics(transition.methodChanges);
-	//}
+	for (VersionTransition transition <- transitions) {
+		println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
+		printMethodChangeStatistics(transition.methodChanges);
+	}
 }
 
 public void runCached() {

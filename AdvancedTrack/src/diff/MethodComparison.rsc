@@ -251,6 +251,43 @@ private set[loc] getPublicClassesAndInterfacesForModel(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition) || isInterface(m.definition)};
 }
 
+/*
+public M3 createAndroidM3() {
+	loc androidFolder = |file:///Users/abort/Documents/UvA/Software_Evolution/advanced-track-repository/android/|;
+	set[str] androidVersionFolders = { "android-1.6_r1.1", "android-2.0_r1" };
+	set[str] sources = { "framework-apache-http/src", "framework-base/awt" };
+	
+	set[loc] directories = {}
+	for (v <- androidVersionFolders) {
+		loc androidVersionFullPath = androidFolder + v;
+		for (s <- sources) {
+			directories += (androidFullPath + s);
+		}
+	}
+
+	return createM3FromDirectory(androidFolder, directories);  
+}
+*/
+
+public M3 createM3FromDirectory(loc project, set[loc] sources, str javaVersion = "1.7") {
+    if (!(isDirectory(project))) throw "<project> is not a valid directory";
+    set[loc] classPaths = {};
+    set[loc] sourcePaths = {};
+    for (s <- sources) {
+	    classPaths += getPaths(s, "class") + find(s, "jar");
+    	sourcePaths += getPaths(s, "java");
+	}
+
+    //setEnvironmentOptions(project);
+    setEnvironmentOptions(classPaths, sourcePaths);
+    M3 result = m3(project);
+    for (sp <- sourcePaths) {
+      result = composeJavaM3(project, { createM3FromFile(f, javaVersion = javaVersion) | loc f <- find(sp, "java") });
+    }
+    registerProject(project, result);
+    return result;
+}
+
 @memo public map[loc,set[loc]] parents(M3 m) = toMap(invert(m@containment));
 
 @doc { Return the package URI for a given class URI. }
