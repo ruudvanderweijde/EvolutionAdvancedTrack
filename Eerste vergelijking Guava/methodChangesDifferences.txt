@@ -1,0 +1,71 @@
+Gevonden in JDiff maar niet bij ons:
+
+asList() : non-final to final
+cellSet() : abstract to non-abstract
+column(c) : abstract to non-abstract
+columnKeySet() : abstract to non-abstract
+copyOf(...) : final to non-final
+      (...) : final to non-final
+hashString(CharSequence) - now deprecated. CHECK
+immutableEnumMap(MapMaker) - change in signature. CHECK
+of(...) * 4 : final to non-final
+openBufferedStream() * 3 : changed return type
+putString() * 2 : deprecated. CHECK
+row() : abstract to non-abstract
+rowKeySet() : abstract to non-abstract
+standardRemove(Object) : DEPRECATED. CHECK.
+toArray(...) * 2 : non-final to final
+HashCode.toString() : non-final to final
+transformAndConcat(Function) : change in signature. CHECK
+writeBytesTo(byte[], int, int) : non-final to final
+
+Gevonden bij ons maar niet in JDiff:
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractIdleService/startAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/ForwardingService/stop()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/ForwardingService/startAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractExecutionThreadService/stopAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/io/CharStreams/asCharSource(java.lang.String)| - bij ons deprecated, bij hen deleted.
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractService/stop()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractScheduledService/start()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractIdleService/start()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/ForwardingService/start()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractScheduledService/stopAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractScheduledService/startAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractService/start()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractIdleService/stop()|
+
+DEPRECATED: |java+method:///com/google/common/immutableEnumMap/HashCodes/fromLong(long)| - NIET GEVONDEN. ONDUIDELIJK WAAROM.
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractExecutionThreadService/startAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/io/ByteStreams/asByteSource(byte%5B%5D)| - bij hen deleted
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractService/stopAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractService/startAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/hash/Funnels/stringFunnel()| - BIJ HEN DELETED.
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractExecutionThreadService/start()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractExecutionThreadService/stop()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/ForwardingService/stopAndWait()|
+
+DEPRECATED: |java+method:///com/google/common/util/concurrent/AbstractIdleService/stopAndWait()|
+
+CONSTATERINGEN:
+- Wij tellen @Deprecated gewoon per class, in JDiff tellen ze overrides niet mee.
+- Sommige dingen zijn om (momenteel nog onduidelijke reden) bij JDiff als deletions en bij ons als deprecations. Bij het kijken in de source blijkt idd dat het om deprecations gaat (zie saveDeprecatedDifferences.txt). Komt maar een paar keer voor dus wellicht voor nu te verwaarlozen.
