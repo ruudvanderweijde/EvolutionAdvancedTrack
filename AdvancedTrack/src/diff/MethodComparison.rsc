@@ -105,9 +105,6 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 		
 		set[loc] methodsInClassOrInterfaceNew = modelHierarchyNew[classOrInterface];
 		for (loc method <- methodsInClassOrInterfaceOld) {
-				if (method == |java+method:///com/google/common/collect/ConcurrentHashMultiset/create(com.google.common.collect.GenericMapMaker)|) {
-					int i = 0;
-				}
 				loc newMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
 				if (newMethod != |file:///|) {
 					println("change <method> to <newMethod>");
@@ -141,12 +138,12 @@ private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMet
     tuple[str methodName, list[str] parameters] methodNameAndParametersOld = extractMethodNameAndParameters(method);
   
         // Get all old methods with the same name
-        set[loc] methodsWithEqualNameOld = { m | m <- oldMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0] }; 
-        set[loc] methodsWithEqualNameNew = { m | m <- newMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0] };
+        set[loc] methodsWithEqualNameOld = { m | m <- oldMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0], size(methodNameAndParametersOld.parameters) == size(extractMethodNameAndParameters(m)[1]) }; 
+        set[loc] methodsWithEqualNameNew = { m | m <- newMethods, methodNameAndParametersOld.methodName == extractMethodNameAndParameters(m)[0], size(methodNameAndParametersOld.parameters) == size(extractMethodNameAndParameters(m)[1]) };
         bool equalSize = size(methodsWithEqualNameOld) == size(methodsWithEqualNameNew);
         // No overloading in case equalSize == 1
         // TODO: no relation from old method to new method?
-      	if (equalSize) {
+      	if (equalSize && size(methodsWithEqualNameOld) == 1) {
       		loc oldMethod = getOneFrom(methodsWithEqualNameOld);
       		loc newMethod = getOneFrom(methodsWithEqualNameNew);
       		
@@ -155,8 +152,9 @@ private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMet
       	
 			// check if the size is one (no overloading) and the parameters differ
 			// TODO: take into account different parameter sizes
-      		if (size(methodsWithEqualNameOld) == 1 && oldParams != newParams) {
-      			println("sig change!!!!!");       
+			println("name: <methodNameAndParametersOld[0]>: <oldParams> new: <newParams>"); 
+      		if (oldParams != newParams) {
+      			println("sig change!!!!!");
             	return newMethod;
             } 
         }       

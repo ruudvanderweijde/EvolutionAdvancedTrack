@@ -268,6 +268,10 @@ public void writeM3Models(list[loc] projects) {
 	}
 }
 
+public void writeM3ModelsGuava() {
+	writeBinaryValueFile(|project://AdvancedTrack/m3/|+"allguava.bin.m3", createM3FromDirectory(|file:///usr/local/slipsum|));
+}
+
 public void printImage(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[loc] ma, set[loc] mr, set[loc] fa, set[loc] fr] diff) {
 	map[str, num] total = ("ca":0,"cr":0,"ma":0,"mr":0,"fa":0,"fr":0);
 	for (x <- diff) {
