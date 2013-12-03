@@ -1,0 +1,56 @@
+-------------------------------------------------------
+  V14
+
+  public static CharSource asCharSource(String string) {
+    return new StringCharSource(string);
+  }
+
+  V15
+
+  @Deprecated
+  public static CharSource asCharSource(String string) {
+    return CharSource.wrap(string);
+  }
+  -------------------------------------------------------
+
+  V14
+  static <R extends Readable & Closeable> CharSource asCharSource(
+      final InputSupplier<R> supplier) {
+    checkNotNull(supplier);
+    return new CharSource() {
+      @Override
+      public Reader openStream() throws IOException {
+        return asReader(supplier.getInput());
+      }
+    };
+  }
+
+  V15
+  public static CharSource asCharSource(
+      final InputSupplier<? extends Readable> supplier) {
+    checkNotNull(supplier);
+    return new CharSource() {
+      @Override
+      public Reader openStream() throws IOException {
+        return asReader(supplier.getInput());
+      }
+
+      @Override
+      public String toString() {
+        return "CharStreams.asCharSource(" + supplier + ")";
+      }
+    };
+  }
+
+  Package-protected meegeteld?
+-------------------------------------------------------
+  V14
+  public static ByteSource asByteSource(byte[] b) {
+    return new ByteArrayByteSource(b);
+  }
+
+  V15
+  @Deprecated
+  public static ByteSource asByteSource(byte[] b) {
+    return ByteSource.wrap(b);
+  }

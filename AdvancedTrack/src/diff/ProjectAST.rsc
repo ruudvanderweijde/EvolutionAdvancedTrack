@@ -19,6 +19,7 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 
 import diff::MethodComparison;
+import cigdem::ClassLevelChanges;
 
 import analysis::m3::Core;
 
@@ -37,7 +38,7 @@ data VersionTransition = versionTransition(loc oldVersion,
 										   loc newVersion,
 										   set[Change] classChanges, 
 										   set[MethodChange] methodChanges, 
-										   set[Change] fieldChanges);
+										   set[FieldChange] fieldChanges);
 
 public list[loc] projects = [
 							//|project://GuavaRelease01|,
@@ -55,6 +56,8 @@ public list[loc] projects = [
 							|project://GuavaRelease14.0|,
 							//|project://GuavaRelease14.0.1|,
 							|project://GuavaRelease15.0|
+							//|project://FerryAndroid3|,
+							//|project://FerryAndroid4|
 							];
 							
 @logLevel {
@@ -475,7 +478,7 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
 	set[MethodChange] methodChanges = getMethodChanges(old, new);	
-	set[Change] fieldChanges = getFieldChanges(old, new);
+	set[FieldChange] fieldChanges = getFieldChanges(old, new);
 	
 	//TODO: derive changed classes
 	//	set[loc] publicClasses1 = getPublicClassesForModel(old);

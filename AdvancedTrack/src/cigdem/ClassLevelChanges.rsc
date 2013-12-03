@@ -10,6 +10,7 @@ import Set;
 import util::Math;
 import \test::ProjectAST;
 
+data FieldChange = unchanged(loc locator) | typeChanged(loc old, loc new) | modifierChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
 
 public map [loc, str] androidVersionToLevel= (
 		|project://platform_development-android-1.6_r1|: "Level 4",
