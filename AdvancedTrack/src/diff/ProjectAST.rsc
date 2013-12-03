@@ -5,6 +5,7 @@ import List;
 import Set;
 import String;
 import DateTime;
+import Relation;
 
 import ValueIO;
 
@@ -39,18 +40,18 @@ data VersionTransition = versionTransition(loc oldVersion,
 										   set[Change] fieldChanges);
 
 public list[loc] projects = [
-							//|project://GuavaRelease01|,
-							//|project://GuavaRelease02|,
-							//|project://GuavaRelease03|
-							//|project://GuavaRelease05|,
-							//|project://GuavaRelease06|,
-							//|project://GuavaRelease07|,
-							//|project://GuavaRelease08|,
-							//|project://GuavaRelease09|,
-							//|project://GuavaRelease10.0|,
-							//|project://GuavaRelease11.0|,
-							//|project://GuavaRelease12.0|,
-							//|project://GuavaRelease13.0|,
+							|project://GuavaRelease01|,
+							|project://GuavaRelease02|,
+							|project://GuavaRelease03|,
+							|project://GuavaRelease05|,
+							|project://GuavaRelease06|,
+							|project://GuavaRelease07|,
+							|project://GuavaRelease08|,
+							|project://GuavaRelease09|,
+							|project://GuavaRelease10.0|,
+							|project://GuavaRelease11.0|,
+							|project://GuavaRelease12.0|,
+							|project://GuavaRelease13.0|,
 							|project://GuavaRelease14.0|,
 							//|project://GuavaRelease14.0.1|,
 							|project://GuavaRelease15.0|
@@ -71,6 +72,14 @@ public void logMessage(str message, int level) {
 	}
 }
 
+public loc testMethod = |project://GuavaRelease14.0/src/com/google/common/util/concurrent/Futures.java|;
+public loc testClass = |project://GuavaRelease14.0/src/com/google/common/util/concurrent/Futures.java|(59932,2119,<1525,4>,<1577,5>);
+
+public void runTest() {
+	list[M3] models = getM3Models(projects);
+	M3 model = models[0];
+}
+
 public void run() {
 	logMessage("Getting m3 models...", 1);
 	list[M3] models = getM3Models(projects);
@@ -82,47 +91,108 @@ public void run() {
 	writeTransitionsToCache(transitions);
 	
 	logMessage("Display results", 1);
-	for (VersionTransition transition <- transitions) {
-		println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
-		printMethodChangeStatistics(transition.methodChanges);
-	}
+	//for (VersionTransition transition <- transitions) {
+	//	println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
+	//	printMethodChangeStatistics(transition.methodChanges);
+	//}
 }
 
 public void runCached() {
 	// read from cache
 	list[VersionTransition] transitions = readTransitionsFromCache();
-	iprintln(transitions);
+	visualizeTransitions(transitions);
+}
+
+public loc getPackage(M3 model, loc location) {
+	//|java+class:///com/google/common/collect/FilteredKeyMultimap/AddRejectingList|
+	loc package = location;
+	iprintln(package);
+	while (!isPackage(location)) {
+		package = getContainment(model, location);	
+	}
+	iprintln(package);
+	set [loc] classes =  {c | <c,l> <- model@containment, location == l, isPackage(c) };
+	iprintln(classes);
+	if (size(classes) != 1) {throw ("The field should have one parent class.");}
+	else { return getOneFrom(classes); }
+}
+
+public loc getContainment(M3 model, loc location) {
+	// keep on doing...
+}
+public loc getClass(M3 model, loc location) {
+	set [loc] classes =  {c | <c,class> <- model@containment };
+	if (size(classes) != 1) {throw ("The field should have one parent class.");}
+	else { return getOneFrom(classes); }
 }
 
 private void visualizeTransitions(list[VersionTransition] transitions) {
-	
-	list[Figure] treemaps = [];
+	list[Figure] versions = [];
+	logMessage("visualization get dataset...", 2);
 	for (transition <- transitions) {
-		logMessage("visit start", 1);
-		
-		treemaps += treemap([
-				box(area(10),fillColor("green")),
-	     		box(area(20),fillColor("red")),
-	     		box(text("jada"),area(10)),
-            	box(vcat([
-            		text("nested"),
-            		treemap([
-            			box(area(5),fillColor("purple")),box(area(10),fillColor("orange"))
-            		])
-            	],shrink(0.9)),area(30),fillColor("lightblue"))
-     ]);
+		versions += versionFigure(transition);		
 	}
-	render(hcat(treemaps, gap(10)));	
+	logMessage("rendering image...", 2);
+	//iprintln(versions);
+	render(
+		hscreen(
+			hcat(versions, top(), gap(10)), 
+			id("versionLabel")
+		)
+	);
 }
 
 public Figure versionFigure(VersionTransition transition) {
-		
-		visit(transition) {
-			case addition: println("addition");
-			case deletion: println("deletion");
-			case transition: println("transition");
+	logMessage("versionFigure: <transition.oldVersion> - <transition.newVersion>", 2);
+	list[Figure] version = [];
+	//for (change <- transition.classChanges) {
+	//	iprintln(change);
+	//}
+	rel[loc package, loc class, Figure method] pcm = {};  
+	for (change <- transition.methodChanges) {
+		visit(change) {
+			//case change:\unchanged(location)	: pcm += <change@package, change@class, addMethod(location)>;
+			case change:\signatureChanged(location, newLocation)	: pcm += <change@package, change@class, addMethod(location, "yellow")>;
+			case change:\deprecated(location)	: pcm += <change@package, change@class, addMethod(location, "orange")>;
+			case change:\added(location)		: pcm += <change@package, change@class, addMethod(location, "green")>;
+			case change:\deleted(location)		: pcm += <change@package, change@class, addMethod(location, "red")>;
 		}
+	}
 
+	list[Figure] packageFigures = [], classFigures = [], methodFigures = [];	
+	logMessage("create map for version: <transition.oldVersion> - <transition.newVersion>", 2);
+	set[loc] packages = pcm.package;
+	rel[value package, loc class, Figure method] classesFilter = {};
+	for (package <- packages) {
+		classesFilter = domainR(pcm, {package});
+		classFigures = [];
+		for (class <- classesFilter.class) {
+			methodFigures = [];
+			for(method <- { m | <p,c,m> <- pcm, c == class, p == package } ) {
+				methodFigures += method;
+			}
+			classFigures += addClass("<class>", methodFigures);
+		}
+		packageFigures += addPackage("<package>", classFigures);
+	}
+	
+	str versionLabel = "";
+	versionLabel += (/<x:[0-9\._]+>/ := transition.oldVersion.authority) ? (x) : transition.oldVersion.authority;
+	versionLabel += " to ";
+	versionLabel += (/<x:[0-9\._]+>/ := transition.newVersion.authority) ? (x) : transition.newVersion.authority;
+	return addVersion(versionLabel, packageFigures);
+}
+
+public FProperty popup(str s) {
+	return mouseOver(box(text(s), gap(1), fillColor("Yellow")));
+}
+
+public Figure b(str id, str label, str color="white") {
+	return box(text(id), popup(label), fillColor(color));
+}
+
+public Figure package(str id, str label) {
+	return box(text(id), popup(label));
 }
 
 public FProperty popup(str s) {
@@ -130,11 +200,130 @@ public FProperty popup(str s) {
 }
 
 public Figure b(str id, str label) {
-	return box(text(id), popup(label));
+	return box(popup(label));
 }
+//public Figure b(str id, str label) {
+//	return box(text(id), popup(label));
+//}
 
 public Figure package(str id, str label) {
 	return box(text(id), popup(label));
+}
+
+public Figure addVersion(str label, list[Figure] packages) {
+	return vcat(packages, project(text(label), "versionLabel"));
+}
+//public Figure addVersion(str label, list[Figure] packages) {
+//	return vcat(packages, project(text(label), "versionLabel"));
+//}
+
+public Figure addPackage(str label, list[Figure] classes) {
+	return vcat([b("p",label), treemap(classes)]);
+}
+
+public Figure addClass(str label, list[Figure] methods) {
+	return vcat([b("c", label),	treemap(methods)]);
+}
+
+public Figure addedMethod(str label) {
+	return b("m", label);
+}
+public Figure deprecatedMethod(str label) {
+	return b("m", label, color="red");
+}
+public Figure addMethod(loc location) {
+	return box("m", "<location>");
+	return b("m", "<location>");
+}
+public Figure addMethod(str label) {
+	return b("m", label);
+}
+public Figure addMethod(loc location, str color) {
+	str label = last(split("/", "<location>"));
+	return b(label, color=color);
+}
+
+public void vizDynamic() {
+	render(
+		hscreen(
+			hcat(
+				[	
+					addVersion("version",
+						[
+							addPackage("Package W",
+							[
+								addClass("Class W",
+								[
+									addMethod("Method W1")
+								]
+								)
+							]),
+							addPackage("Package X",
+							[
+								addClass("Class X",	
+								[
+									addMethod("Method X1"), 
+									addMethod("Method X2"), 
+									addMethod("Method X3"), 
+									addMethod("Method X4"), 
+									addMethod("Method X12"), 
+									addMethod("Method Y")
+								]
+								),
+								addClass("Class Y",
+								[
+									addMethod("Method Y1"), 
+									addMethod("Method Y")
+								]
+								)			
+							]						
+						)
+									
+					]						
+					),
+					addVersion("version",
+						[
+							addPackage("Package W",
+							[
+								addClass("Class W",
+								[
+									addMethod("Method W1")
+								]
+								)
+							]),
+							addPackage("Package X",
+							[
+								addClass("Class X",
+								[
+									addMethod("Method X1"), 
+									addMethod("Method X2"), 
+									addMethod("Method X3"), 
+									addMethod("Method X4"), 
+									addMethod("Method X12"), 
+									addMethod("Method Y")
+								]
+								),
+								addClass("Class Y",
+								[
+									addMethod("Method Y1"), 
+									addMethod("Method Y")
+								]
+								)	
+												
+											
+							]						
+						)
+									
+					]						
+					)
+				],
+				top(),
+				gap(10)
+			), 
+			id("versionLabel")
+		)
+	);
+	return;
 }
 
 public void viz() {
@@ -267,62 +456,6 @@ public void writeM3Models(list[loc] projects) {
 	}
 }
 
-public void printImage(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[loc] ma, set[loc] mr, set[loc] fa, set[loc] fr] diff) {
-	map[str, num] total = ("ca":0,"cr":0,"ma":0,"mr":0,"fa":0,"fr":0);
-	for (x <- diff) {
-		total["ca"] += size(x.ca);
-		total["cr"] += size(x.cr);
-		total["ma"] += size(x.ma);
-		total["mr"] += size(x.mr);
-		total["fa"] += size(x.fa);
-		total["fr"] += size(x.fr);
-	}
-	//Figure point(num x, num y, str color){ return ellipse(shrink(0.05),fillColor(color),align(x,y));}
-	Figure point(num x, num y, str color, str txt){ 
-		//return ellipse(shrink(0.05),fillColor(color),align(x,y));
-		return box(fillColor(color),project(text(txt),"hscreen"), bottom());
-	}
-	
-	list[Figure] coords = [];
-	num step = 0;
-	num stepPos = 0;
-	for (x <- diff) {
-		stepPos = step/(size(diff)-1); 
-		step+=1;
-		//println("pos: <step>,<stepPos> || size: <size(x.ca)> || total: <total["ca"]> || res: <size(x.ca)/total["ca"]>");
-		coords += point(stepPos, total["ca"] == 0 ? 0 : 1-(size(x.ca)/total["ca"]), "red", "ca");
-		coords += point(stepPos, total["cr"] == 0 ? 0 : 1-(size(x.cr)/total["cr"]), "blue", "cr");
-		coords += point(stepPos, total["ma"] == 0 ? 0 : 1-(size(x.ma)/total["ma"]), "green", "ma");
-		coords += point(stepPos, total["mr"] == 0 ? 0 : 1-(size(x.mr)/total["mr"]), "pink", "mr");
-		coords += point(stepPos, total["fa"] == 0 ? 0 : 1-(size(x.fa)/total["fa"]), "yellow", "fa");
-		coords += point(stepPos, total["fr"] == 0 ? 0 : 1-(size(x.fr)/total["fr"]), "orange", "fr");
-	}
-	
-	//ovl = overlay(coords, shapeConnected(false));
-	//legend = hcat([box(text("<i>"), size(50,20), fillColor(color("black", 0.9))) | i <- total]);
- 	render(hscreen(
- 			hcat([coords]),
- 			id("hscreen")));
-	//render(ovl);
-}
-
-public void readablePrint(lrel[loc from, loc to, set[loc] ca, set[loc] cr, set[loc] ma, set[loc] mr, set[loc] fa, set[loc] fr] diff) {
-	// print header
-	println("<tabs(8,0)>classes<tabs(2,7)>methods<tabs(2,7)>fields");
-	println("from<tabs(4,4)>to<tabs(4,2)>+\t-\t+\t-\t+\t-\t");
-	str io = "";
-	for (x <- diff) {
-		io += "<x.from>"		+ tabs(4, size("<x.from>"));
-		io += "<x.to>"			+ tabs(4, size("<x.to>"));
-		io += "<size(x.ca)>" 	+ "\t";
-		io += "<size(x.cr)>" 	+ "\t";
-		io += "<size(x.ma)>" 	+ "\t";
-		io += "<size(x.mr)>" 	+ "\t";
-		io += "<size(x.fa)>" 	+ "\t";
-		io += "<size(x.fr)>" 	+ "\t";
-		io += "\n";
-	}
-}
 @doc { This function returns the differences between a list of M3 models }
 public list[VersionTransition] compareM3Models(list[M3] models) {
 	// precondition
