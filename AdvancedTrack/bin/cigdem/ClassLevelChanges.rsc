@@ -151,11 +151,10 @@ public bool isFieldDeprecated(M3 oldModel, M3 newModel, loc fieldName) {
 
 
 // This method returns the set of FieldChanges form added and removed fields only 
-public set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel) {
+public set [FieldChange]  getAddedAndRemovedFields(set [loc] oldPublicFields, 
+													set [loc] newPublicFields) {
 	set [FieldChange] addRemFieldsSet = {};
-	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
-	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
-	set [loc] addedFields = newPublicFields - oldPublicFields;
+	set [loc] addedFields = newPublicFields- oldPublicFields;
 	set [loc] removedFields = oldPublicFields - newPublicFields;
 	for ( addedField <- addedFields) { 	addRemFieldsSet = addRemFieldsSet + added(addedField); }
 	for ( removedField <- removedFields) { 	addRemFieldsSet = addRemFieldsSet + deleted(removedField); }	
@@ -163,13 +162,14 @@ public set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel) {
 }
 
 
+
+
 // This method returns the set of FieldChanges for fields which are changed 
 // (modifier, type or deprecated)
-public set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel) {
+public set [FieldChange]  getAllChangedFields(set [loc] oldPublicFields, 
+													set [loc] newPublicFields) {
 	set [FieldChange] changedFieldsSet = {};
-	set [loc] oldFields = getPublicFieldsForModel(oldModel);
-	set [loc] newFields = getPublicFieldsForModel(newModel);
-	set [loc] commonFields = oldFields & newFields;
+	set [loc] commonFields = oldPublicFields & newPublicFields;
 	logMessage("Number of common fields: <size(commonFields)>", 2);
 	for (loc oneField <- commonFields)  
 		{ 	if  (	isFieldModifierChanged(oldModel, newModel, oneField) ||
@@ -208,10 +208,10 @@ public set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel)
 
 // Get the classes which will be marked as changed because they contain
 // a changed, deleted or removed field.
-public set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel) {
+public set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel,
+													set [loc] oldPublicFields, 
+													set [loc] newPublicFields) {
 	set [loc] changedClassesSet = {};
-	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
-	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
 	set [loc] addedFields = newPublicFields - oldPublicFields;
 	set [loc] removedFields = oldPublicFields - newPublicFields;
 	set [loc] changedNewClasses = {getClassOfAField(newModel, field) | field <- addedFields};
@@ -220,6 +220,7 @@ public set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel) {
 	logMessage("The number of changed classes because of a removed field: <size(changedOldClasses)>", 2);	
 	for (loc oneClass <- changedNewClasses)  { 	changedClassesSet = changedClassesSet + changed(oneClass); }		
 	for (loc oneClass <- changedOldClasses)  { 	changedClassesSet = changedClassesSet + changed(oneClass); }			
+	return changedClassesSet;
 }
 
 
@@ -228,7 +229,9 @@ public void findAllFieldAndClassChanges(list [M3] projectList) {
 	M3 oldModel = models[0];
 	M3 newModel = models[1];
 	findClassChanges(oldModel, newModel);
-	
+	set [loc] oldFields = getPublicFieldsForModel(oldModel);
+	set [loc] newFields = getPublicFieldsForModel(newModel);	
+	// Call the other functions !!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 
