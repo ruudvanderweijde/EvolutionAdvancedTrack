@@ -9,6 +9,7 @@ import List;
 import Set;
 import Type;
 import String;
+import Relation;
 
 import vis::Figure;
 import vis::Render;
@@ -29,6 +30,9 @@ data MethodSignature = nil()
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
 data MethodChange = unchanged(loc locator) | signatureChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
+
+anno loc MethodChange @ class;
+anno loc MethodChange @ package;
 
 public MethodSignature convertDeclarationToSignature(Declaration decl) {
 	MethodSignature signature = nil();
@@ -93,8 +97,16 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	set[loc] deprecatedMethodsOld = findDeprecatedMethods(old);
 	set[loc] deprecatedMethodsNew = findDeprecatedMethods(new);
 	
+	loc class = |file:///|;
+	loc package = |file:///|;
+	
 	set[MethodChange] methodTransitions = {};
 	for (loc classOrInterface <- modelHierarchyOld) {
+		class = classOrInterface;
+		assert isClass(class) || isInterface(class);
+		package = getClassPackage(old, class);
+		assert isPackage(package);
+		
 		set[loc] methodsInClassOrInterfaceOld = modelHierarchyOld[classOrInterface];
 		if (classOrInterface notin modelHierarchyNew) {
 			//TODO: find out if we need to count class change here.
@@ -111,21 +123,33 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 				loc newMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
 				if (newMethod != |file:///|) {
 					println("change <method> to <newMethod>");
-					methodTransitions += signatureChanged(method, newMethod);
+					MethodChange signatureChanged = signatureChanged(method, changedMethod);
+					signatureChanged@class = class;
+					signatureChanged@package = package; 
+					methodTransitions += signatureChanged;
 					changedMethods += method;
 				}
 				elseif (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
-					methodTransitions += deprecated(method);
+					MethodChange deprecated = deprecated(method);
+					deprecated@class = class;
+					deprecated@package = package;
+					methodTransitions += deprecated;
                     changedMethods += method;
 	            } 
 				else {
-					methodTransitions += unchanged(method);
+					MethodChange unchanged = unchanged(method);
+					unchanged@class = class;
+					unchanged@package = package;
+					methodTransitions += unchanged;
 				}
 		}
 		
 		set[loc] addedMethods = methodsInClassOrInterfaceNew - methodsInClassOrInterfaceOld - changedMethods;
 		for (loc addedMethod <- addedMethods) {
-			methodTransitions += added(addedMethod);
+			MethodChange added = added(addedMethod);
+			added@class = class;
+			added@package = package;
+			methodTransitions += added;;
 		}
 
 		set[loc] deletedMethods = methodsInClassOrInterfaceOld - methodsInClassOrInterfaceNew - changedMethods;
@@ -242,4 +266,21 @@ private map[loc, set[loc]] getModelHierarchy(M3 model) {
 
 private set[loc] getPublicClassesAndInterfacesForModel(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition) || isInterface(m.definition)};
+}
+
+@memo public map[loc,set[loc]] parents(M3 m) = toMap(invert(m@containment));
+
+@doc { Return the package URI for a given class URI. }
+public loc getClassPackage(M3 m, loc c) {
+	set[loc] parents = parents(m)[c]?{};
+	if (isEmpty(parents)) {
+		return unknownPackage(c);
+	}
+	loc parent = getUniqueElement(parents);
+	return isPackage(parent) ? parent : getClassPackage(m, parent);
+}
+
+private &T getUniqueElement(set[&T] s) {
+	assert size(s) == 1;
+	return getOneFrom(s);
 }
