@@ -8,7 +8,8 @@ import Map;
 import List;
 import Set;
 import util::Math;
-import \test::ProjectAST;
+import diff::Utils;
+import diff::ProjectAST;
 
 data FieldChange = unchanged(loc locator) | typeChanged(loc old, loc new) | modifierChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
 
