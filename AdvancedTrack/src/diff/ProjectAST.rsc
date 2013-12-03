@@ -520,7 +520,7 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 	println("-------Of these method changes, <deprecatedMethods> consisted of newly deprecated methods and <signatureChangedMethods> methods had a signature change-------");
 }
 
-private set[Change] getFieldChanges(M3 old, M3 new) {
+private set[FieldChange] getFieldChanges(M3 old, M3 new) {
 	//TODO: implement
 	//set[loc] publicFields1 = getPublicFieldsForModel(old);
 	//set[loc] publicFields2 = getPublicFieldsForModel(new);
