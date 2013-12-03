@@ -27,7 +27,7 @@ public list[M3] getM3Models(list[loc] projects) {
 	}
 }
 
-public list[M3] getM3Model(str name) {
+public M3 getM3ModelByName(str name) {
 	return readBinaryValueFile(#M3, |project://AdvancedTrack/m3/|+"<name>.bin.m3");
 }
 public void binToValue(str name) {
