@@ -1,0 +1,5 @@
+Rationale Deprecation:
+
+Als een method die override van een andere method @Deprecated heeft op zowel het super- als subniveau, tellen we ze niet beiden mee.
+
+Als een superclass/interface methode NIET deprecated is en deze 3 implementaties heeft waarvan 2 deprecated zijn. Tellen we deze dan als twee?
