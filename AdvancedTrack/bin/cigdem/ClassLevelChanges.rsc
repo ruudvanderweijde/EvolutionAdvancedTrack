@@ -8,6 +8,7 @@ import Map;
 import List;
 import Set;
 import util::Math;
+import diff::Utils;
 import diff::ProjectAST;
 
 data FieldChange = 	unchanged(loc locator)	| changed(loc locator) 
