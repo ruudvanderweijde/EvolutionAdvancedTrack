@@ -16,8 +16,12 @@ import analysis::m3::Core;
 // - diff in annotations
 
 public void run() {
-	M3 model1 = getM3ModelByName("FerryAndroid4");
-	M3 model2 = getM3ModelByName("platform_development-android-1.6_r1");
+	set[int] APILevels = {4,5};
+
+	lrel[int APILevel,loc LocationM3] m3Location = getM3LocationsJAR(APILevels);
+	println(m3Location);
+	//M3 model1 = getM3ModelByName("FerryAndroid4");
+	//M3 model2 = getM3ModelByName("platform_development-android-1.6_r1");
 	CompareM3(model1, model2);
 }
 

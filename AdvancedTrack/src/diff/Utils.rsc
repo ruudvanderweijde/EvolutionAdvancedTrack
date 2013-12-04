@@ -3,6 +3,9 @@ module diff::Utils
 import IO;
 import List;
 import ValueIO;
+import DateTime;
+import ListRelation;
+import String;
 
 import diff::DataType;
 import diff::ProjectAST;
@@ -10,6 +13,8 @@ import diff::ProjectAST;
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
+
+import lang::csv::IO;
 
 @doc { write m3 models to file system as binary files }
 public void writeM3Models(list[loc] projects) {
@@ -43,4 +48,28 @@ public void writeTransitionsToCache(list[VersionTransition] transitions) {
 @doc { Read transition model from filesystem }
 public list[VersionTransition] readTransitionsFromCache() {
 	return readBinaryValueFile(#list[VersionTransition], cacheDir+"Transitions.bin.trans");
+}
+
+@doc { get Android information from csv }
+public lrel[int APILevel, str Version, datetime ReleaseDate] getAndroidVersions() {
+        return readCSV(#lrel[int APILevel, str Version, datetime ReleaseDate], |project://AdvancedTrack/csv/Versions.csv|);
+}
+
+@doc { get locations of src m3s }
+public lrel[int APILevel, loc LocationM3] getM3LocationsDOC(set[int] APILevels) {
+    return domainR(getM3Locations("DOC"), APILevels);
+}
+@doc { get locations of src m3s }
+public lrel[int APILevel, loc LocationM3] getM3LocationsJAR(set[int] APILevels) {
+    return domainR(getM3Locations("JAR"), APILevels);
+}
+@doc { get locations of src m3s }
+public lrel[int APILevel, loc LocationM3] getM3LocationsSRC(set[int] APILevels) {
+    return domainR(getM3Locations("SRC"), APILevels);
+}
+@doc { convert lrel[int, str] to lrel[int, loc] }
+private lrel[int APILevel, loc LocationM3] getM3Locations(str source) {
+    lrel[int APILevel, str LocationM3] res = readCSV(#lrel[int APILevel, str LocationM3], |project://AdvancedTrack/csv/| + "M3Locations<source>.csv");
+    // convert string to loc, readCSV is not able to read locs
+    return [<a,toLocation(b)> | <a,b> <- res, isFile(toLocation(b))];
 }
