@@ -13,12 +13,12 @@ import diff::DataType;
 import diff::Utils;
 import diff::ProjectAST;
 
-data FieldChange = 	unchangedField(loc locator)	| changedField(loc locator) 
+data FieldChange = 	  changedField(loc locator) 
 					| addedField(loc locator) 	| deletedField(loc locator);
 
 set [FieldChange] fieldChanges = {};
 
-data ClassChange = unchangedClass(loc locator)	| changedClass(loc locator) 
+data ClassChange =    changedClass(loc locator) 
 					| addedClass(loc locator) 	| deletedClass(loc locator);
 
 set [ClassChange] classChanges = {};
@@ -44,9 +44,9 @@ public list[loc] androidProjects = [
 
 
 
-public list [loc] guava2Projects = [ |project://guava//GuavaRelease06|
+public list [loc] guava2Projects = [ |project://guava//GuavaRelease09|
 									,
-									|project://guava//GuavaRelease07|];
+									|project://guava//GuavaRelease10.0|];
 									
 public list [loc] changedProjects = [|project://tmp//ChangedProject01|,
 									|project://tmp//ChangedProject02|
@@ -217,8 +217,8 @@ public set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel)
 	set [loc] addedClasses = newClasses - oldClasses;
 	set [loc] removedClasses = oldClasses  - newClasses;
 	set [loc] commonClasses = oldClasses & newClasses;
-	for ( aClass <- addedClasses) { classChanges = classChanges + addedClass(aClass); }
-	for ( rClass <- removedClasses) { classChanges = classChanges + deletedClass(rClass); }
+	for ( aClass <- addedClasses) { changedClassesSet += addedClass(aClass); }
+	for ( rClass <- removedClasses) { changedClassesSet +=  deletedClass(rClass); }
 	//logMessage("The number of added classes : <size(addedClasses)>", 2); 
 	//logMessage("The number of removed classes : <size(removedClasses)>", 2); 	
 	for (loc oneClass <- commonClasses)  
@@ -229,6 +229,8 @@ public set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel)
 		}
 	return changedClassesSet;
 }
+
+
 
 // Get the classes which will be marked as changed because they contain
 // a changed, deleted or removed field.
@@ -248,16 +250,39 @@ public set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel,
 }
 
 
+public set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
+	set [loc] addedClasses = {};
+	set [loc] deletedClasses = {};
+	set [loc] changedClasses = {};
+	set [ClassChange] returnSet = {};
+	visit (inputSet) {
+		case addedClass(c) : addedClasses += c;
+		case deletedClass(c): deletedClasses += c;	    	 
+		case changedClass (c): changedClasses += c;
+	}
+	logMessage("Added classes: <addedClasses>", 2);
+	logMessage("Deleted classes: <deletedClasses>", 2);
+	logMessage("Changed classes: <changedClasses>", 2);	
+	visit (inputSet) {
+		case cAdded:addedClass(_) : returnSet += cAdded;
+		case cDeleted:deletedClass(_): returnSet += cDeleted;	    	 
+		case cChanged:changedClass (c): {
+			if ((c notin addedClasses) && (c notin deletedClasses) ) { returnSet += cChanged;};	
+		}
+	}
+	return returnSet;
+}
+
+
 public void findAllFieldAndClassChanges(list [loc] projectList) {
 	list [M3] models = cigdemsGetM3Models(projectList);
 	M3 oldModel = models[0];
 	M3 newModel = models[1];
 	set [loc] oldFields = getPublicFieldsForModel(oldModel);
 	set [loc] newFields = getPublicFieldsForModel(newModel);	
-	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel);
-	for (aClass <- tempClasses ) { classChanges += aClass; }
-	tempClasses = getClassesWithFieldChanges(oldModel, newModel, oldFields, newFields);
-	for (aClass <- tempClasses ) { classChanges += aClass; }
+	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
+									+ getClassesWithFieldChanges(oldModel, newModel, oldFields, newFields);
+	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
 	set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel, oldFields, newFields);
 	for (aField <- tempFields) {fieldChanges += aField; }
 	tempFields = getAllChangedFields(oldModel, newModel, oldFields, newFields);
