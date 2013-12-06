@@ -44,9 +44,9 @@ public list[loc] androidProjects = [
 
 
 
-//public list [loc] guava2Projects = [ |project://GuavaReleasproject://GuavaRelease01|
-//									,
-//									|project://GuavaReleasproject://GuavaRelease02|];
+public list [loc] guava2Projects = [ |project://guava//GuavaRelease06|
+									,
+									|project://guava//GuavaRelease07|];
 									
 public list [loc] changedProjects = [|project://tmp//ChangedProject01|,
 									|project://tmp//ChangedProject02|
@@ -245,11 +245,16 @@ public void findAllFieldAndClassChanges(list [loc] projectList) {
 }
 
 
-public void testChangedProject() {
+public void testChangedProjects() {
 	findAllFieldAndClassChanges(changedProjects);
 	iprintln(sort(classChanges)); println();
 	iprintln(sort(fieldChanges));
 }
 
+public void testGuavaProjects() {
+	findAllFieldAndClassChanges(guava2Projects);
+	iprintln(sort(classChanges)); println();
+	iprintln(sort(fieldChanges));
+}
 
 
