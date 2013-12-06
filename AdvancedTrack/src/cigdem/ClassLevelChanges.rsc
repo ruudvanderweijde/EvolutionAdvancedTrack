@@ -61,6 +61,20 @@ public list[M3] cigdemsGetM3Models(list[loc] projects) {
 	}
 }		
 
+// This method takes set of fields as argument and returns a set of fields which are
+// defined in public classes or interfaces only
+public set [loc] takeFieldsInPublicClasses (M3 model, set[loc] fields) {
+	set [loc] publicClasses = getPublicClassesAndInterfaces(model);
+	set [loc] takenFields = {};
+	for (aField <- fields ) {
+		if (getClassOfAField(model, aField) in publicClasses) {
+			takenFields += aField;
+		}
+	}
+	return takenFields;
+}
+
+
 public set[loc] getPublicClassesAndInterfaces(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) ) };
 }
@@ -74,8 +88,11 @@ public set[loc] getPublicFieldsForModel(M3 model) {
 
 
 public loc getClassOfAField(M3 model, loc field) {
-	set [loc] classes =  {c | <c,field> <- model@containment };
-	if (size(classes) != 1) {throw ("The field should have one parent class.");}
+	set [loc] classes = {r.from | tuple [loc from, loc to] r <- model@containment, isField(r.to) && r.to == field };
+	if (size(classes) != 1) {
+		println("Error in getClassOfAfield()! ");
+		throw ("The field should have one parent class.");
+	}
 	else { return getOneFrom(classes); }
 }
 
@@ -155,11 +172,11 @@ public bool isFieldDeprecated(M3 oldModel, M3 newModel, loc fieldName) {
 
 
 // This method returns the set of FieldChanges form added and removed fields only 
-public set [FieldChange]  getAddedAndRemovedFields(set [loc] oldPublicFields, 
+public set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel, set [loc] oldPublicFields, 
 													set [loc] newPublicFields) {
 	set [FieldChange] addRemFieldsSet = {};
-	set [loc] addedFields = newPublicFields- oldPublicFields;
-	set [loc] removedFields = oldPublicFields - newPublicFields;
+	set [loc] addedFields = takeFieldsInPublicClasses (newModel, (newPublicFields- oldPublicFields));
+	set [loc] removedFields = takeFieldsInPublicClasses (oldModel, (oldPublicFields - newPublicFields));
 	for ( aField <- addedFields) { 	addRemFieldsSet = addRemFieldsSet + addedField(aField); }
 	for ( rField <- removedFields) { 	addRemFieldsSet = addRemFieldsSet + deletedField(rField); }	
 	return addRemFieldsSet;
@@ -172,17 +189,20 @@ public set [FieldChange]  getAddedAndRemovedFields(set [loc] oldPublicFields,
 // (modifier, type or deprecated)
 public set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, set [loc] oldPublicFields, 
 													set [loc] newPublicFields) {
-	set [FieldChange] changedFieldsSet = {};
+	set [loc] changedFields = {};
+	set [FieldChange] returnSet = {};
 	set [loc] commonFields = oldPublicFields & newPublicFields;
-	//logMessage("Number of common fields: <size(commonFields)>", 2);
+	logMessage("Number of common fields: <size(commonFields)>", 2);
 	for (loc oneField <- commonFields)  
 		{ 	if  (	isFieldModifierChanged(oldModel, newModel, oneField) ||
 					isFieldTypeChanged(oldModel, newModel, oneField) 	 ||
 					isFieldDeprecated(oldModel, newModel, oneField) ) {
-				changedFieldsSet = changedFieldsSet + changedField(oneField);	
+				changedFields += (oneField);	
 			}		
 		}
-	return changedFieldsSet ;
+	set [loc] fieldsInPublicClasses = takeFieldsInPublicClasses(oldModel, changedFields);
+	for ( cField <- fieldsInPublicClasses) { returnSet += changedField(cField); }	
+	return returnSet ;
 }
 
 
@@ -238,7 +258,7 @@ public void findAllFieldAndClassChanges(list [loc] projectList) {
 	for (aClass <- tempClasses ) { classChanges += aClass; }
 	tempClasses = getClassesWithFieldChanges(oldModel, newModel, oldFields, newFields);
 	for (aClass <- tempClasses ) { classChanges += aClass; }
-	set [FieldChange] tempFields = getAddedAndRemovedFields(oldFields, newFields);
+	set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel, oldFields, newFields);
 	for (aField <- tempFields) {fieldChanges += aField; }
 	tempFields = getAllChangedFields(oldModel, newModel, oldFields, newFields);
 	for (aField <- tempFields) {fieldChanges += aField; }
