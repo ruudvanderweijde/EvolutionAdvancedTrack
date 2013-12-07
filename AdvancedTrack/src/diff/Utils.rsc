@@ -26,7 +26,7 @@ public void writeM3Models(list[loc] projects) {
 
 
 @doc { get a list of M3 models from file system }
-public list[M3] getM3Models(list[loc] projects, subfolder) {
+public list[M3] getM3Models(list[loc] projects) {
 	return {
 		for (project <- projects) {
 			append(readBinaryValueFile(|project://AdvancedTrack/m3/|+"<project.authority>.bin.m3"));
