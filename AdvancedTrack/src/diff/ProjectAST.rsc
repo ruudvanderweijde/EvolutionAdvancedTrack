@@ -49,6 +49,7 @@ public list[loc] projects = [
 							//|project://FerryAndroid3|,
 							//|project://FerryAndroid4|
 							];
+public str subdirectory = "guava";
 							
 @logLevel {
 	Log level 0 => no logging;
@@ -67,7 +68,7 @@ public void logMessage(str message, int level) {
 
 public void run() {
 	logMessage("Getting m3 models...", 1);
-	list[M3] models = getM3Models(projects);
+	list[M3] models = getM3Models(projects, subdirectory);
 	logMessage("Comparing m3 models... ", 1);
 	list[VersionTransition] transitions = compareM3Models(models);
 

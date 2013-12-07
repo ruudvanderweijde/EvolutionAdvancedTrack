@@ -17,19 +17,6 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 
-// represents a method signature
-data MethodSignature = nil() 
-					   | methodSignature(str name, list[Modifier] modifiers, Type returnType, loc location, list[Declaration] params, list[Expression] exceptions)
-					   | constructorSignature(str name, list[Modifier] modifiers, loc location, list[Declaration] params, list[Expression] exceptions);
-
-// represents a parameter without considering its name
-data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
-
-data MethodChange = unchanged(loc locator) | returnTypeChanged(loc method, TypeSymbol oldType, TypeSymbol newType) | signatureChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
-
-anno loc MethodChange @ class;
-anno loc MethodChange @ package;
-
 public MethodSignature convertDeclarationToSignature(Declaration decl) {
 	MethodSignature signature = nil();
 	visit(decl) {
