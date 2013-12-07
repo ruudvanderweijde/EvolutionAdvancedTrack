@@ -1,9 +1,5 @@
 module diff::MethodComparison
 
-import lang::java::m3::Core;
-import lang::java::m3::AST;
-import lang::java::jdt::m3::Core;
-
 import IO;
 import List;
 import Set;
@@ -11,14 +7,14 @@ import Type;
 import String;
 import Relation;
 
-import vis::Figure;
-import vis::Render;
+import diff::Utils;
+import diff::DataType;
 
 import util::ValueUI;
 
 import lang::java::m3::Core;
 import lang::java::m3::AST;
-import lang::java::jdt::m3::Core;   
+import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 
 // represents a method signature

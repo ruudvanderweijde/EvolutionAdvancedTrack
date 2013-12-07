@@ -4,19 +4,22 @@ import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import IO;
+import ValueIO;
 import Map;
 import List;
 import Set;
 import util::Math;
+import diff::DataType;
+import diff::Utils;
 import diff::ProjectAST;
 
-data FieldChange = 	unchanged(loc locator)	| changed(loc locator) 
-					| added(loc locator) 	| deleted(loc locator);
+data FieldChange = 	  changedField(loc locator) 
+					| addedField(loc locator) 	| deletedField(loc locator);
 
 set [FieldChange] fieldChanges = {};
 
-data ClassChange = unchanged(loc locator)	| changed(loc locator) 
-					| added(loc locator) 	| deleted(loc locator);
+data ClassChange =    changedClass(loc locator) 
+					| addedClass(loc locator) 	| deletedClass(loc locator);
 
 set [ClassChange] classChanges = {};
 
@@ -41,17 +44,41 @@ public list[loc] androidProjects = [
 
 
 
-//public list [loc] guava2Projects = [ |project://GuavaReleasproject://GuavaRelease01|
-//									,
-//									|project://GuavaReleasproject://GuavaRelease02|];
+public list [loc] guava2Projects = [ |project://guava//GuavaRelease09|
+									,
+									|project://guava//GuavaRelease10.0|];
 									
-public list [loc] changedProjects = [|project://ChangedProject01|,
-									|project://ChangedProject02|
-									];									
+public list [loc] changedProjects = [|project://tmp//ChangedProject01|,
+									|project://tmp//ChangedProject02|
+									];							
+									
+public list[M3] cigdemsGetM3Models(list[loc] projects) {
+	return {
+		for (project <- projects) {
+			append(readBinaryValueFile(|project://AdvancedTrack/m3/|+
+							"<project.authority><project.path>.bin.m3"));
+		}	
+	}
+}		
+
+// This method takes set of fields as argument and returns a set of fields which are
+// defined in public classes or interfaces only
+public set [loc] takeFieldsInPublicClasses (M3 model, set[loc] fields) {
+	set [loc] publicClasses = getPublicClassesAndInterfaces(model);
+	set [loc] takenFields = {};
+	for (aField <- fields ) {
+		if (getClassOfAField(model, aField) in publicClasses) {
+			takenFields += aField;
+		}
+	}
+	return takenFields;
+}
+
 
 public set[loc] getPublicClassesAndInterfaces(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) ) };
 }
+
 
 
 public set[loc] getPublicFieldsForModel(M3 model) {
@@ -59,19 +86,13 @@ public set[loc] getPublicFieldsForModel(M3 model) {
 }
 
 
-public set [loc] getAddedPublicFields(M3 oldModel, M3 newModel) {
-	return (getPublicFieldsForModel(newModel) - getPublicFieldsForModel(oldModel));
-}
-
-
-public set [loc] getRemovedPublicFields(M3 oldModel, M3 newModel) {
-	return (getPublicFieldsForModel(oldModel) - getPublicFieldsForModel(newModel));
-}
-
 
 public loc getClassOfAField(M3 model, loc field) {
-	set [loc] classes =  {c | <c,field> <- model@containment };
-	if (size(classes) != 1) {throw ("The field should have one parent class.");}
+	set [loc] classes = {r.from | tuple [loc from, loc to] r <- model@containment, isField(r.to) && r.to == field };
+	if (size(classes) != 1) {
+		println("Error in getClassOfAfield()! ");
+		throw ("The field should have one parent class.");
+	}
 	else { return getOneFrom(classes); }
 }
 
@@ -113,17 +134,21 @@ public bool isFieldTypeChanged (M3 oldModel, M3 newModel, loc fieldName) {
 }
 
 
-set [loc] getDeprecatedSetForField(rel [loc from, loc to] dependencies, loc fieldName) {
+set [loc] getDeprecatedSetForLocation(rel [loc from, loc to] dependencies, loc locName) {
 	return {dependency.from | dependency <- dependencies, 
  					dependency.to == |java+interface:///java/lang/Deprecated|,
- 					dependency.from == fieldName};
+ 					dependency.from == locName};
+}
+
+
+
+set [loc] getDeprecatedSetForField(rel [loc from, loc to] dependencies, loc fieldName) {
+	return getDeprecatedSetForLocation(dependencies, fieldName);
 }
 
 
 set [loc] getDeprecatedSetForClass(rel [loc from, loc to] dependencies, loc className) {
-	return {dependency.from | dependency <- dependencies, 
- 					dependency.to == |java+interface:///java/lang/Deprecated|,
- 					dependency.from == className};
+	return getDeprecatedSetForLocation(dependencies, className);
 }
 
 
@@ -146,68 +171,135 @@ public bool isFieldDeprecated(M3 oldModel, M3 newModel, loc fieldName) {
 }
 
 
-public void findAllFieldChanges(list [loc] projectList) {
-	list [M3] models = getM3Models(projectList);
-	M3 oldModel = models[0];
-	M3 newModel = models[1];
-	set [loc] oldFields = getPublicFieldsForModel(oldModel);
-	set [loc] newFields = getPublicFieldsForModel(newModel);
-	set [loc] commonFields = oldFields & newFields;
+// This method returns the set of FieldChanges form added and removed fields only 
+public set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel, set [loc] oldPublicFields, 
+													set [loc] newPublicFields) {
+	set [FieldChange] addRemFieldsSet = {};
+	set [loc] addedFields = takeFieldsInPublicClasses (newModel, (newPublicFields- oldPublicFields));
+	set [loc] removedFields = takeFieldsInPublicClasses (oldModel, (oldPublicFields - newPublicFields));
+	for ( aField <- addedFields) { 	addRemFieldsSet = addRemFieldsSet + addedField(aField); }
+	for ( rField <- removedFields) { 	addRemFieldsSet = addRemFieldsSet + deletedField(rField); }	
+	return addRemFieldsSet;
+}
+
+
+
+
+// This method returns the set of FieldChanges for fields which are changed 
+// (modifier, type or deprecated)
+public set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, set [loc] oldPublicFields, 
+													set [loc] newPublicFields) {
+	set [loc] changedFields = {};
+	set [FieldChange] returnSet = {};
+	set [loc] commonFields = oldPublicFields & newPublicFields;
 	logMessage("Number of common fields: <size(commonFields)>", 2);
 	for (loc oneField <- commonFields)  
 		{ 	if  (	isFieldModifierChanged(oldModel, newModel, oneField) ||
 					isFieldTypeChanged(oldModel, newModel, oneField) 	 ||
 					isFieldDeprecated(oldModel, newModel, oneField) ) {
-				fieldChanges = fieldChanges + changed(oneField);	
+				changedFields += (oneField);	
 			}		
 		}
+	set [loc] fieldsInPublicClasses = takeFieldsInPublicClasses(oldModel, changedFields);
+	for ( cField <- fieldsInPublicClasses) { returnSet += changedField(cField); }	
+	return returnSet ;
 }
 
-// Find added and removed classes, and also the classes for which modifiers 
-// have changed or are deprecated etc.
-public void findClassChanges(M3 oldModel, M3 newModel) {
+
+
+
+// Return the set of ClassChanges for added and removed classes, and also 
+// for the classes for which modifiers have changed or are deprecated
+public set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel) {
+	set [ClassChange] changedClassesSet = {};
 	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel);
 	set [loc] newClasses = getPublicClassesAndInterfaces(newModel);
 	set [loc] addedClasses = newClasses - oldClasses;
 	set [loc] removedClasses = oldClasses  - newClasses;
 	set [loc] commonClasses = oldClasses & newClasses;
-	for ( addedClass <- addedClasses) { classChanges = classChanges + added(addedClass); }
-	for ( removedClass <- removedClasses) { classChanges = classChanges + deleted(removedClass); }
-	logMessage("The number of added classes : <size(addedClasses)>", 2); 
-	logMessage("The number of removed classes : <size(removedClasses)>", 2); 	
+	for ( aClass <- addedClasses) { changedClassesSet += addedClass(aClass); }
+	for ( rClass <- removedClasses) { changedClassesSet +=  deletedClass(rClass); }
+	//logMessage("The number of added classes : <size(addedClasses)>", 2); 
+	//logMessage("The number of removed classes : <size(removedClasses)>", 2); 	
 	for (loc oneClass <- commonClasses)  
 		{ 	if  (	isClassModifierChanged(oldModel, newModel, oneClass) ||
 					isClassDeprecated(oldModel, newModel, oneClass) ) {
-				classChanges = classChanges + changed(oneClass);	
+				changedClassesSet = changedClassesSet + changedClass(oneClass);	
 			}		
 		}
+	return changedClassesSet;
 }
 
 
 
-public void findClassLevelChanges(M3 oldModel, M3 newModel) {
-	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
-	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
+// Get the classes which will be marked as changed because they contain
+// a changed, deleted or removed field.
+public set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel,
+													set [loc] oldPublicFields, 
+													set [loc] newPublicFields) {
+	set [ClassChange] changedClassesSet = {};
 	set [loc] addedFields = newPublicFields - oldPublicFields;
 	set [loc] removedFields = oldPublicFields - newPublicFields;
-	logMessage("Number of added public fields: <size(addedFields)>:", 2);
-	logMessage("Number of removed public fields: <size(removedFields)>", 2);	
-	for ( addedField <- addedFields) { 	fieldChanges = fieldChanges + added(addedField); }
-	for ( removedField <- removedFields) { 	fieldChanges = fieldChanges + deleted(removedField); }	
 	set [loc] changedNewClasses = {getClassOfAField(newModel, field) | field <- addedFields};
 	set [loc] changedOldClasses = {getClassOfAField(oldModel, field) | field <- removedFields};
-	logMessage("The number of changed classes because of an added field: <size(changedNewClasses)>", 2);
-	logMessage("The number of changed classes because of a removed field: <size(changedOldClasses)>", 2);	
+	//logMessage("The number of changed classes because of an added field: <size(changedNewClasses)>", 2);
+	//logMessage("The number of changed classes because of a removed field: <size(changedOldClasses)>", 2);	
+	for (loc oneClass <- changedNewClasses)  { 	changedClassesSet = changedClassesSet + changedClass(oneClass); }		
+	for (loc oneClass <- changedOldClasses)  { 	changedClassesSet = changedClassesSet + changedClass(oneClass); }			
+	return changedClassesSet;
 }
 
 
-public void testAndroid() {findClassLevelChanges(androidProjects);}
+public set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
+	set [loc] addedClasses = {};
+	set [loc] deletedClasses = {};
+	set [loc] changedClasses = {};
+	set [ClassChange] returnSet = {};
+	visit (inputSet) {
+		case addedClass(c) : addedClasses += c;
+		case deletedClass(c): deletedClasses += c;	    	 
+		case changedClass (c): changedClasses += c;
+	}
+	logMessage("Added classes: <addedClasses>", 2);
+	logMessage("Deleted classes: <deletedClasses>", 2);
+	logMessage("Changed classes: <changedClasses>", 2);	
+	visit (inputSet) {
+		case cAdded:addedClass(_) : returnSet += cAdded;
+		case cDeleted:deletedClass(_): returnSet += cDeleted;	    	 
+		case cChanged:changedClass (c): {
+			if ((c notin addedClasses) && (c notin deletedClasses) ) { returnSet += cChanged;};	
+		}
+	}
+	return returnSet;
+}
 
-public void testChangedProject() {findClassLevelChanges(changedProjects);}
 
-public void testGuava() {findClassLevelChanges(guavaProjects);}
+public void findAllFieldAndClassChanges(list [loc] projectList) {
+	list [M3] models = cigdemsGetM3Models(projectList);
+	M3 oldModel = models[0];
+	M3 newModel = models[1];
+	set [loc] oldFields = getPublicFieldsForModel(oldModel);
+	set [loc] newFields = getPublicFieldsForModel(newModel);	
+	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
+									+ getClassesWithFieldChanges(oldModel, newModel, oldFields, newFields);
+	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
+	set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel, oldFields, newFields);
+	for (aField <- tempFields) {fieldChanges += aField; }
+	tempFields = getAllChangedFields(oldModel, newModel, oldFields, newFields);
+	for (aField <- tempFields) {fieldChanges += aField; }
+}
 
 
-public void testAllFields() {findAllFieldChanges(changedProjects);}
+public void testChangedProjects() {
+	findAllFieldAndClassChanges(changedProjects);
+	iprintln(sort(classChanges)); println();
+	iprintln(sort(fieldChanges));
+}
 
-public void testAllFields2() {findAllFieldChanges(androidProjects);}
+public void testGuavaProjects() {
+	findAllFieldAndClassChanges(guava2Projects);
+	iprintln(sort(classChanges)); println();
+	iprintln(sort(fieldChanges));
+}
+
+
