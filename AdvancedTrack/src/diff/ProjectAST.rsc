@@ -296,31 +296,43 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 }
 
 private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
-	int unchangedMethods = 0, deprecatedMethods = 0, signatureChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
+	int unchangedMethods = 0, deprecatedMethods = 0, signatureChangedMethods = 0, returnTypeChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
+	set[loc] changedMethods = {};
 	for (MethodChange methodChange <- methodChanges) {
 		visit(methodChange) {
 			case unchanged(_): unchangedMethods += 1;
+			
 			case deprecated(locator): {
 				println("\tDEPRECATED: <locator>");
+				changedMethods += locator;
 				deprecatedMethods += 1;
 			}
+			
 			case signatureChanged(old,new): {
 				println("\tSIGNATURE CHANGE: <old> IS NOW: <new>");
+				changedMethods += locator;
 				signatureChangedMethods += 1;
 			}
+			
+			case returnTypeChanged(locator, oldType, newType): {
+				println("\tRETURN TYPE CHANGE OF <locator>: <oldType> is now <newType>");
+				changedMethods += locator;
+				returnTypeChangedMethods += 1;
+			}
+			
 			case added(locator): {
 				println("\tADDED: <locator>");
 				addedMethods += 1;
 			}
+			
 			case deleted(locator): {
 				println("\tDELETED: <locator>");
 				deletedMethods += 1;
 			}
 		}
 	}
-	int changedMethods = deprecatedMethods + signatureChangedMethods;
-	println("-------In total <unchangedMethods> methods are unchanged, <changedMethods> methods are changed, <addedMethods> methods have been added and <deletedMethods> methods have been deleted.-------");
-	println("-------Of these method changes, <deprecatedMethods> consisted of newly deprecated methods and <signatureChangedMethods> methods had a signature change-------");
+	println("-------In total <unchangedMethods> methods are unchanged, <size(changedMethods)> methods have changed somehow, <addedMethods> methods have been added and <deletedMethods> methods have been deleted.-------");
+	println("-------Regarding changes in methods: <deprecatedMethods> methods are newly deprecated, <signatureChangedMethods> methods had a signature change and <returnTypeChangedMethods> methods had a return type change.-------");
 }
 
 private set[FieldChange] getFieldChanges(M3 old, M3 new) {

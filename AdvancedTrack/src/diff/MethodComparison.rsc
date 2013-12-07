@@ -29,7 +29,7 @@ data MethodSignature = nil()
 // represents a parameter without considering its name
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
-data MethodChange = unchanged(loc locator) | signatureChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
+data MethodChange = unchanged(loc locator) | returnTypeChanged(loc method, TypeSymbol oldType, TypeSymbol newType) | signatureChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
 
 anno loc MethodChange @ class;
 anno loc MethodChange @ package;
@@ -97,6 +97,9 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	set[loc] deprecatedMethodsOld = findDeprecatedMethods(old);
 	set[loc] deprecatedMethodsNew = findDeprecatedMethods(new);
 	
+	rel[loc name, TypeSymbol typ] oldTypes = old@types;
+	rel[loc name, TypeSymbol typ] newTypes = new@types;
+	
 	loc class = |file:///|;
 	loc package = |file:///|;
 	
@@ -117,29 +120,40 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 		
 		set[loc] methodsInClassOrInterfaceNew = modelHierarchyNew[classOrInterface];
 		for (loc method <- methodsInClassOrInterfaceOld) {
-				if (method == |java+method:///com/google/common/collect/ConcurrentHashMultiset/create(com.google.common.collect.GenericMapMaker)|) {
-					int i = 0;
-				}
+				
+				//Signature changes
 				loc newMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
 				if (newMethod != |file:///|) {
 					println("change <method> to <newMethod>");
-					MethodChange signatureChanged = signatureChanged(method, changedMethod);
-					signatureChanged@class = class;
-					signatureChanged@package = package; 
+					MethodChange signatureChanged = signatureChanged(method, newMethod);
+					//signatureChanged@class = class;
+					//signatureChanged@package = package; 
 					methodTransitions += signatureChanged;
 					changedMethods += method;
 				}
-				elseif (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
+				
+				//Newly deprecated methods
+				if (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
 					MethodChange deprecated = deprecated(method);
-					deprecated@class = class;
-					deprecated@package = package;
+					//deprecated@class = class;
+					//deprecated@package = package;
 					methodTransitions += deprecated;
                     changedMethods += method;
-	            } 
-				else {
+	            }
+	            
+	            //Return type changed
+	            tuple[bool changed, TypeSymbol oldType, TypeSymbol newType] returnTypeComparison = findMethodReturnTypeChange(method, oldTypes, newTypes);
+	            if (returnTypeComparison.changed) {
+	            	MethodChange returnTypeChanged = returnTypeChanged(method, returnTypeComparison.oldType, returnTypeComparison.newType);
+	            	methodTransitions += returnTypeChanged;
+	            	changedMethods += method;
+	            }
+	            
+	            //Unchanged method
+				if(method notin changedMethods) {
 					MethodChange unchanged = unchanged(method);
-					unchanged@class = class;
-					unchanged@package = package;
+					//unchanged@class = class;
+					//unchanged@package = package;
 					methodTransitions += unchanged;
 				}
 		}
@@ -186,6 +200,20 @@ private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMet
         }       
 
     return |file:///|;
+}
+
+private tuple[bool changed, TypeSymbol old, TypeSymbol new] findMethodReturnTypeChange(loc method, rel[loc, TypeSymbol] oldTypes, rel[loc, TypeSymbol] newTypes) {
+	try {
+		set[TypeSymbol] oldMethodTypes = oldTypes[method];
+		set[TypeSymbol] newMethodTypes = newTypes[method];
+		TypeSymbol oldReturn = getOneFrom(oldMethodTypes).returnType;
+		TypeSymbol newReturn = getOneFrom(newMethodTypes).returnType;
+		return <oldReturn != newReturn, oldReturn, newReturn>;
+	}
+	catch x: {
+		println("Trouble analysing return types for method <method>.");
+		return <false, \void(), \void()>;
+	}
 }
 
 private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
