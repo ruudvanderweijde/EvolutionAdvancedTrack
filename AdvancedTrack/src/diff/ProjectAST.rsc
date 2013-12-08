@@ -49,21 +49,7 @@ public list[loc] projects = [
 							//|project://FerryAndroid3|,
 							//|project://FerryAndroid4|
 							];
-							
-@logLevel {
-	Log level 0 => no logging;
-	Log level 1 => main logging;
-	Log level 2 => debug logging;
-}
-private int logLevel = 2;
 
-@doc { }
-public void logMessage(str message, int level) {
-	if (level <= logLevel) {
-		str date = printDate(now(), "Y-MM-dd HH:mm:ss");
-		println("<date> :: <message>");
-	}
-}
 
 public void run() {
 	logMessage("Getting m3 models...", 1);

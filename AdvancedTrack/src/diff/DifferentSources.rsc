@@ -16,9 +16,10 @@ import analysis::m3::Core;
 // - diff in annotations
 
 public void run() {
-	set[int] APILevels = {4,5};
+	set[int] APILevels = {4};
 
-	lrel[int APILevel,loc LocationM3] m3Location = getM3LocationsJAR(APILevels);
+	lrel[int APILevel,loc LocationM3] m3JARLocation = getM3LocationsJAR(APILevels);
+	lrel[int APILevel,loc LocationM3] m3DOCLocation = getM3LocationsDoc(APILevels);
 	println(m3Location);
 	//M3 model1 = getM3ModelByName("FerryAndroid4");
 	//M3 model2 = getM3ModelByName("platform_development-android-1.6_r1");
