@@ -51,14 +51,24 @@ public list[loc] projects = [
 							];
 public str subdirectory = "guava";
 
-public void runJAR() {
-	//set[int] versions = toSet([2..(17+1)]);
-	set[int] versions = toSet([2..4]);
+public void runJAR(int maxApiLevel) {
+	set[int] versions = toSet([2..(maxApiLevel+1)]);
+	logMessage("Getting m3 models...", 1);
 	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsJAR(versions);
 	list[M3] models = [ getM3ModelByLocation(l) | <_,l> <- modelLocations ];
-	compareModels(models);
-	list[VersionTransition] transitions = compareM3Models(models);
-	iprintln(models); 
+
+	//check models
+	for (model <- models) {
+		str message = "<model.id>:\t"; 
+		message += "<size([m|<m,_> <- model@annotations, isClass(m)])> class\t\t";
+		message += "<size([m|<m,_> <- model@annotations, isInterface(m)])> interfaces\t\t";
+		message += "<size([m|<m,_> <- model@annotations, isMethod(m)])> methods\t";
+		message += "<size([m|<m,_> <- model@annotations, isField(m)])> fields";
+		println(message);
+	}	
+	//logMessage("Comparing m3 models... ", 1);
+//	list[VersionTransition] transitions = compareM3Models(models);
+	//printTransitions(transitions);
 }
 
 public void run() {
@@ -70,7 +80,10 @@ public void run(str dir) {
 	list[M3] models = getM3Models(projects, dir);
 	logMessage("Comparing m3 models... ", 1);
 	list[VersionTransition] transitions = compareM3Models(models);
+	printTransitions(transitions);
+}
 
+public void printTransitions(list[VersionTransition] transitions) {
 	// write to cache 
 	logMessage("Writing to cache", 1);
 	writeTransitionsToCache(transitions);
@@ -141,7 +154,7 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 }
 
 private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
-	int unchangedMethods = 0, deprecatedMethods = 0, signatureChangedMethods = 0, returnTypeChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
+	int unchangedMethods = 0, deprecatedMethods = 0, undeprecatedMethods = 0, signatureChangedMethods = 0, returnTypeChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
 	set[loc] changedMethods = {};
 	for (MethodChange methodChange <- methodChanges) {
 		visit(methodChange) {
@@ -153,9 +166,15 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 				deprecatedMethods += 1;
 			}
 			
+			case undeprecated(locator): {
+				println("\tUNDEPRECATED: <locator>");
+				changedMethods += locator;
+				undeprecatedMethods += 1;
+			}
+			
 			case signatureChanged(old,new): {
 				println("\tSIGNATURE CHANGE: <old> IS NOW: <new>");
-				changedMethods += locator;
+				changedMethods += old;
 				signatureChangedMethods += 1;
 			}
 			
@@ -177,7 +196,7 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 		}
 	}
 	println("-------In total <unchangedMethods> methods are unchanged, <size(changedMethods)> methods have changed somehow, <addedMethods> methods have been added and <deletedMethods> methods have been deleted.-------");
-	println("-------Regarding changes in methods: <deprecatedMethods> methods are newly deprecated, <signatureChangedMethods> methods had a signature change and <returnTypeChangedMethods> methods had a return type change.-------");
+	println("-------Changes in methods: <deprecatedMethods> deprecated, <undeprecatedMethods> undeprecated, <signatureChangedMethods> signature change and <returnTypeChangedMethods> return type change.-------");
 }
 
 private set[FieldChange] getFieldChanges(M3 old, M3 new) {

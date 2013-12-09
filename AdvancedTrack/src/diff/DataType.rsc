@@ -44,7 +44,14 @@ data MethodSignature = nil()
 // represents a parameter without considering its name
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
-data MethodChange = unchanged(loc locator) | returnTypeChanged(loc method, TypeSymbol oldType, TypeSymbol newType) | signatureChanged(loc old, loc new) | deprecated(loc locator) | added(loc locator) | deleted(loc locator);
+data MethodChange = 
+				unchanged(loc locator) | 
+				returnTypeChanged(loc method, TypeSymbol oldType, TypeSymbol newType) | 
+				signatureChanged(loc old, loc new) | 
+				deprecated(loc locator) | 
+				undeprecated(loc locator) | 
+				added(loc locator) | 
+				deleted(loc locator);
 
 anno loc MethodChange @ class;
 anno loc MethodChange @ package;

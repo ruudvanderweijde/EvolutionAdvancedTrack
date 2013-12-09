@@ -91,7 +91,7 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 		class = classOrInterface;
 		assert isClass(class) || isInterface(class);
 		package = getClassPackage(old, class);
-		assert isPackage(package);
+		//assert isPackage(package);
 		
 		set[loc] methodsInClassOrInterfaceOld = modelHierarchyOld[classOrInterface];
 		if (classOrInterface notin modelHierarchyNew) {
@@ -124,6 +124,15 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
                     changedMethods += method;
 	            }
 	            
+				//Newly deprecated methods
+				if (method notin deprecatedMethodsNew && method in deprecatedMethodsOld) {
+					MethodChange undeprecated = undeprecated(method);
+					//deprecated@class = class;
+					//deprecated@package = package;
+					methodTransitions += undeprecated;
+                    changedMethods += method;
+	            }
+	            
 	            //Return type changed
 	            tuple[bool changed, TypeSymbol oldType, TypeSymbol newType] returnTypeComparison = findMethodReturnTypeChange(method, oldTypes, newTypes);
 	            if (returnTypeComparison.changed) {
@@ -144,8 +153,8 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 		set[loc] addedMethods = methodsInClassOrInterfaceNew - methodsInClassOrInterfaceOld - changedMethods;
 		for (loc addedMethod <- addedMethods) {
 			MethodChange added = added(addedMethod);
-			added@class = class;
-			added@package = package;
+			//added@class = class;
+			//added@package = package;
 			methodTransitions += added;;
 		}
 
@@ -194,7 +203,7 @@ private tuple[bool changed, TypeSymbol old, TypeSymbol new] findMethodReturnType
 		return <oldReturn != newReturn, oldReturn, newReturn>;
 	}
 	catch x: {
-		println("Trouble analysing return types for method <method>.");
+		//println("Trouble analysing return types for method <method>.");
 		return <false, \void(), \void()>;
 	}
 }
@@ -251,6 +260,7 @@ public tuple[bool, loc] findMethodInInheritanceHierarchy(loc method, M3 model, m
 // TODO: for public methods only
 private set[loc] findDeprecatedMethods(M3 model) {
 	rel[loc declaration, loc annotation] annotationRel = model@annotations;
+	println(model@annotations);
 	return {annotationTuple.declaration | annotationTuple <- annotationRel, annotationTuple.annotation == |java+interface:///java/lang/Deprecated|};
 }
 
@@ -320,15 +330,16 @@ public M3 createM3FromDirectory(loc project, set[loc] sources, str javaVersion =
 
 @doc { Return the package URI for a given class URI. }
 public loc getClassPackage(M3 m, loc c) {
+	return |file:///|;
 	set[loc] parents = parents(m)[c]?{};
 	if (isEmpty(parents)) {
-		return unknownPackage(c);
+		return |file:///|;
 	}
 	loc parent = getUniqueElement(parents);
 	return isPackage(parent) ? parent : getClassPackage(m, parent);
 }
 
 private &T getUniqueElement(set[&T] s) {
-	assert size(s) == 1;
+	//assert size(s) == 1;
 	return getOneFrom(s);
 }
