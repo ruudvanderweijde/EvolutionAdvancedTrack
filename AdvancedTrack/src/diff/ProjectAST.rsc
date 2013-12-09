@@ -51,6 +51,16 @@ public list[loc] projects = [
 							];
 public str subdirectory = "guava";
 
+public void runJAR() {
+	//set[int] versions = toSet([2..(17+1)]);
+	set[int] versions = toSet([2..4]);
+	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsJAR(versions);
+	list[M3] models = [ getM3ModelByLocation(l) | <_,l> <- modelLocations ];
+	compareModels(models);
+	list[VersionTransition] transitions = compareM3Models(models);
+	iprintln(models); 
+}
+
 public void run() {
 	run(subdirectory);
 }
@@ -81,13 +91,13 @@ public void runCached() {
 public loc getPackage(M3 model, loc location) {
 	//|java+class:///com/google/common/collect/FilteredKeyMultimap/AddRejectingList|
 	loc package = location;
-	iprintln(package);
+	//iprintln(package);
 	while (!isPackage(location)) {
 		package = getContainment(model, location);	
 	}
-	iprintln(package);
+	//iprintln(package);
 	set [loc] classes =  {c | <c,l> <- model@containment, location == l, isPackage(c) };
-	iprintln(classes);
+	//iprintln(classes);
 	if (size(classes) != 1) {throw ("The field should have one parent class.");}
 	else { return getOneFrom(classes); }
 }

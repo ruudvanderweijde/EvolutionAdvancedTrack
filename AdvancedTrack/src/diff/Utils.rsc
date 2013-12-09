@@ -53,6 +53,10 @@ public list[M3] getM3Models(list[loc] projects, str subdirectory) {
 public M3 getM3ModelByName(str name, str subdirectory) {
 	return readBinaryValueFile(#M3, |project://AdvancedTrack/m3/|+"<subdirectory>/<name>.bin.m3");
 }
+
+public M3 getM3ModelByLocation(loc location) {
+	return readBinaryValueFile(#M3, location);
+}
 public void binToValue(str name, str subdirectory) {
 	M3 model = readBinaryValueFile(#M3, |project://AdvancedTrack/m3/|+"<subdirectory>/<name>.bin.m3");
 	writeTextValueFile(|project://AdvancedTrack/m3/|+"<subdirectory>/<name>.m3", model);
