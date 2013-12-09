@@ -52,8 +52,12 @@ public list[loc] projects = [
 public str subdirectory = "guava";
 
 public void run() {
+	run(subdirectory);
+}
+
+public void run(str dir) {
 	logMessage("Getting m3 models...", 1);
-	list[M3] models = getM3Models(projects, subdirectory);
+	list[M3] models = getM3Models(projects, dir);
 	logMessage("Comparing m3 models... ", 1);
 	list[VersionTransition] transitions = compareM3Models(models);
 
@@ -170,14 +174,9 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 
 private set[FieldChange] getFieldChanges(M3 old, M3 new) {
 	//TODO: implement
-	//set[loc] publicFields1 = getPublicFieldsForModel(old);
-	//set[loc] publicFields2 = getPublicFieldsForModel(new);
 	return {};
 }
 
 public set[loc] getPublicClassesForModel(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition)};
-}
-public set[loc] getPublicFieldsForModel(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), isField(m.definition)};
 }
