@@ -121,8 +121,6 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	set[FieldChange] fieldChanges = getFieldChanges(old, new);
 	
 	//TODO: derive changed classes
-	//	set[loc] publicClasses1 = getPublicClassesForModel(old);
-	//	set[loc] publicClasses2 = getPublicClassesForModel(new);
 	set[Change] classChanges = {};
 	
 	//TODO: deduce version numbers
@@ -175,8 +173,4 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 private set[FieldChange] getFieldChanges(M3 old, M3 new) {
 	//TODO: implement
 	return {};
-}
-
-public set[loc] getPublicClassesForModel(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition)};
 }
