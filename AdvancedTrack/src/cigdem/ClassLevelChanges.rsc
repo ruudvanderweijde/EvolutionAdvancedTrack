@@ -23,22 +23,13 @@ data ClassChange =    changedClass(loc locator)
 
 set [ClassChange] classChanges = {};
 
-public map [loc, str] androidVersionToLevel= (
-		|project://platform_development-android-1.6_r1|: "Level 4",
-		|project://platform_development-android-1.6_r2|: "Level ?",
-		|project://platform_development-android-2.0_r1|: "Level 5",
-		|project://platform_development-android-2.1_r1|: "Level 7",
-		|project://platform_development-android-2.2_r1|: "Level 8", 
-		|project://platform_development-android-2.3_r1|: "Level 9"
-		);
-
 
 public list[loc] androidProjects = [
 							//|project://platform_development-android-2.1_r1|
 							//,
-							|project://platform_development-android-2.2_r1|
+							|project://android//jar//android-8-android|
 							,
-							|project://platform_development-android-2.3_r1|
+							|project://android//jar//android-9-android|
 							];
 
 
@@ -290,10 +281,41 @@ public void findAllFieldAndClassChanges(list [loc] projectList) {
 }
 
 
+public void printAllResults() {
+	int numOfAddedClasses = 0; int numOfChangedClasses = 0; int numOfDeletedClasses = 0;
+	visit (classChanges) {
+		case addedClass(_) : numOfAddedClasses += 1;
+		case deletedClass(_): numOfDeletedClasses += 1;	    	 
+		case changedClass (_): numOfChangedClasses += 1;
+	}
+	println("Number of added classes <numOfAddedClasses>");
+	println("Number of deleted classes <numOfDeletedClasses>");
+	println("Number of changed classes <numOfChangedClasses>");
+	int numOfAddedFields = 0; int numOfChangedFields = 0; int numOfDeletedFields = 0;	
+	visit (fieldChanges) {
+		case addedField(_) : numOfAddedFields += 1;
+		case deletedField(_): numOfDeletedFields += 1;	    	 
+		case changedField (_): numOfChangedFields += 1;
+	}
+	println("Number of added fields <numOfAddedFields>");
+	println("Number of deleted fields <numOfDeletedFields>");
+	println("Number of changed fields <numOfChangedFields>");	 
+}
+
+
+public void testAndroidProjects() {
+	findAllFieldAndClassChanges(androidProjects);
+	printAllResults();
+	//iprintln(sort(classChanges)); println();
+	//iprintln(sort(fieldChanges));
+}
+
+
 public void testChangedProjects() {
 	findAllFieldAndClassChanges(changedProjects);
-	iprintln(sort(classChanges)); println();
-	iprintln(sort(fieldChanges));
+	printAllResults();
+	//iprintln(sort(classChanges)); println();
+	//iprintln(sort(fieldChanges));
 }
 
 public void testGuavaProjects() {
