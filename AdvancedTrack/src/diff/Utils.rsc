@@ -2,6 +2,7 @@ module diff::Utils
 
 import IO;
 import List;
+import Set;
 import ValueIO;
 import DateTime;
 import ListRelation;
@@ -92,7 +93,7 @@ public lrel[int APILevel, loc LocationM3] getM3LocationsSRC(set[int] APILevels) 
     return domainR(getM3Locations("SRC"), APILevels);
 }
 @doc { convert lrel[int, str] to lrel[int, loc] }
-private lrel[int APILevel, loc LocationM3] getM3Locations(str source) {
+public lrel[int APILevel, loc LocationM3] getM3Locations(str source) {
     lrel[int APILevel, str LocationM3] res = readCSV(#lrel[int APILevel, str LocationM3], |project://AdvancedTrack/csv/| + "M3Locations<source>.csv");
     // convert string to loc, readCSV is not able to read locs
     return [<a,toLocation(b)> | <a,b> <- res, isFile(toLocation(b))];
@@ -106,4 +107,23 @@ public set[loc] findDeprecations(M3 model) {
 
 public bool isDeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDeprecated) {
 	return entity notin oldDeprecated && entity in newDeprecated;
+}
+
+// Don't forget, the Enums should be added. They ar ein M3 in M3@extends annotation
+// | enum name - java.lang.Enum"
+public set[loc] getPublicClassesAndInterfaces(M3 model) {
+	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) ) };
+}
+
+public loc getClassOfAField(M3 model, loc field) {
+	set [loc] classes = {r.from | tuple [loc from, loc to] r <- model@containment, isField(r.to) && r.to == field };
+	if (size(classes) != 1) {
+		println("Error in getClassOfAfield()! ");
+		throw ("The field should have one parent class.");
+	}
+	else { return getOneFrom(classes); }
+}
+
+public set[loc] getPublicFieldsForModel(M3 model) {
+	return {m.definition | m <- model@modifiers, m.modifier == \public(), isField(m.definition)};
 }

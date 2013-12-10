@@ -18,6 +18,7 @@ import util::ValueUI;
 import diff::DataType;
 import diff::Utils;
 import diff::MethodComparison;
+import diff::FieldComparison;
 import cigdem::ClassLevelChanges;
 
 import lang::java::m3::Core;
@@ -98,7 +99,12 @@ public void printTransitions(list[VersionTransition] transitions) {
 	logMessage("Display results", 1);
 	for (VersionTransition transition <- transitions) {
 		println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
+		println("---[FIELDS]---");
+		printFieldChangeStatistics(transition.fieldChanges);
+		println("\n---[METHODS]---");
 		printMethodChangeStatistics(transition.methodChanges);
+		println("\n---[CLASSES]---");
+		printClassChangeStatistics(transition.classChanges);
 	}
 }
 
@@ -149,9 +155,8 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
 	set[MethodChange] methodChanges = getMethodChanges(old, new);	
 	set[FieldChange] fieldChanges = getFieldChanges(old, new);
-	
-	//TODO: derive changed classes
-	set[Change] classChanges = {};
+	//TODO: take methods into account in class changes
+	set[ClassChange] classChanges = getClassChanges(old, new);
 	
 	//TODO: deduce version numbers
 	loc oldVersion = old.id;
@@ -160,42 +165,57 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	return versionTransition(oldVersion, newVersion, classChanges, methodChanges, fieldChanges);
 }
 
+private void printFieldChangeStatistics(set[FieldChange] fieldChanges) {
+	int changedFields = 0, addedFields = 0, deletedFields = 0;
+	for (FieldChange fieldChange <- fieldChanges) {
+		visit (fieldChange) {
+			case changedField(locator): {
+				println("\tCHANGED: <locator>");
+				changedFields += 1;
+			}
+			case addedField(locator): {
+				println("\tCHANGED: <locator>");
+				addedFields += 1;
+			}
+			case deletedField(locator): {
+				println("\tCHANGED: <locator>");
+				deletedFields += 1;
+			}
+		}
+	}
+	println("-------In total <changedFields> fields have changed somehow, <addedFields> fields have been added and <deletedFields> fields have been deleted.-------");
+}
+
 private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 	int unchangedMethods = 0, deprecatedMethods = 0, undeprecatedMethods = 0, signatureChangedMethods = 0, returnTypeChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
 	set[loc] changedMethods = {};
 	for (MethodChange methodChange <- methodChanges) {
 		visit(methodChange) {
 			case unchanged(_): unchangedMethods += 1;
-			
 			case deprecated(locator): {
-				//println("\tDEPRECATED: <locator>");
+				println("\tDEPRECATED: <locator>");
 				changedMethods += locator;
 				deprecatedMethods += 1;
 			}
-			
 			case undeprecated(locator): {
-				//println("\tUNDEPRECATED: <locator>");
+				println("\tUNDEPRECATED: <locator>");
 				changedMethods += locator;
 				undeprecatedMethods += 1;
 			}
-			
 			case signatureChanged(old,new): {
-				//println("\tSIGNATURE CHANGE: <old> IS NOW: <new>");
+				println("\tSIGNATURE CHANGE: <old> IS NOW: <new>");
 				changedMethods += old;
 				signatureChangedMethods += 1;
 			}
-			
 			case returnTypeChanged(locator, oldType, newType): {
-				//println("\tRETURN TYPE CHANGE OF <locator>: <oldType> is now <newType>");
+				println("\tRETURN TYPE CHANGE OF <locator>: <oldType> is now <newType>");
 				changedMethods += locator;
 				returnTypeChangedMethods += 1;
 			}
-			
 			case added(locator): {
-				//println("\tADDED: <locator>");
+				println("\tADDED: <locator>");
 				addedMethods += 1;
 			}
-			
 			case deleted(locator): {
 				println("\tDELETED: <locator>");
 				deletedMethods += 1;
@@ -206,7 +226,23 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 	println("-------Changes in methods: <deprecatedMethods> deprecated, <undeprecatedMethods> undeprecated, <signatureChangedMethods> signature change and <returnTypeChangedMethods> return type change.-------");
 }
 
-private set[FieldChange] getFieldChanges(M3 old, M3 new) {
-	//TODO: implement
-	return {};
+private void printClassChangeStatistics(set[ClassChange] classChanges) {
+	int changedClasses = 0, addedClasses = 0, deletedClasses = 0;
+	for (ClassChange classChange <- classChanges) {
+		visit (classChange) {
+			case changedClass(locator): {
+				println("\tCHANGED: <locator>");
+				changedClasses += 1;
+			}
+			case addedClass(locator): {
+				println("\tCHANGED: <locator>");
+				addedClasses += 1;
+			}
+			case deletedClass(locator): {
+				println("\tCHANGED: <locator>");
+				deletedClasses += 1;
+			}
+		}
+	}
+	println("-------In total <changedClasses> classes have changed somehow, <addedClasses> classes have been added and <deletedClasses> classes have been deleted.-------");
 }

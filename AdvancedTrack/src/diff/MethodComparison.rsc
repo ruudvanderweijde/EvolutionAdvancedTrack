@@ -170,7 +170,7 @@ private map[loc, set[loc]] getModelHierarchy(M3 model) {
         TODO: find out if interface and class inner classes and methods are represented
         set[loc] projectInnerClasses = nestedClasses();
     */
-    set[loc] projectClassesAndInterfaces = getPublicClassesAndInterfacesForModel(model);
+    set[loc] projectClassesAndInterfaces = getPublicClassesAndInterfaces(model);
     methodModifiersMap = toMap(model@modifiers);
     
     //TODO: great stuff!
@@ -182,10 +182,6 @@ private map[loc, set[loc]] getModelHierarchy(M3 model) {
         methodsPerClassInterface += (locator:publicMethods);
     }
     return methodsPerClassInterface;
-}
-
-private set[loc] getPublicClassesAndInterfacesForModel(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition) || isInterface(m.definition)};
 }
 
 public M3 createM3FromDirectory(loc project, set[loc] sources, str javaVersion = "1.7") {
