@@ -38,7 +38,9 @@ public void logMessage(str message, int level) {
 @doc { write m3 models to file system as binary files }
 public void writeM3Models(list[loc] projects, str subdirectory) {
 	for (project <- projects) {
+		logMessage("Now writing file <project.authority>...", 1);
 		writeBinaryValueFile(|project://AdvancedTrack/m3/|+"<subdirectory>/<project.authority>.bin.m3", createM3FromEclipseProject(project));
+		logMessage("Done.", 1);
 	}
 }
 
