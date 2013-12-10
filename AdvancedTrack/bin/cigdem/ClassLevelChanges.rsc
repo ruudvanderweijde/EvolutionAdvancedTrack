@@ -12,6 +12,7 @@ import util::Math;
 import diff::DataType;
 import diff::Utils;
 import diff::ProjectAST;
+import DateTime;
 
 data FieldChange = 	  changedField(loc locator) 
 					| addedField(loc locator) 	| deletedField(loc locator);
@@ -27,9 +28,9 @@ set [ClassChange] classChanges = {};
 public list[loc] androidProjects = [
 							//|project://platform_development-android-2.1_r1|
 							//,
-							|project://android//jar//android-8-android|
+							|project://android//jar//android-2-android|
 							,
-							|project://android//jar//android-9-android|
+							|project://android//jar//android-3-android|
 							];
 
 
@@ -66,6 +67,9 @@ public set [loc] takeFieldsInPublicClasses (M3 model, set[loc] fields) {
 }
 
 
+
+// Don't forget, the Enums should be added. They ar ein M3 in M3@extends annotation
+// | enum name - java.lang.Enum"
 public set[loc] getPublicClassesAndInterfaces(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) ) };
 }
@@ -251,9 +255,12 @@ public set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 		case deletedClass(c): deletedClasses += c;	    	 
 		case changedClass (c): changedClasses += c;
 	}
-	logMessage("Added classes: <addedClasses>", 2);
-	logMessage("Deleted classes: <deletedClasses>", 2);
-	logMessage("Changed classes: <changedClasses>", 2);	
+	logMessage("Added classes: <sort(addedClasses)>", 2);
+	logMessage("Number of added classes: <size(addedClasses)>", 2);	
+	logMessage("Deleted classes: <sort(deletedClasses)>", 2);
+	logMessage("Number of deleted classes: <size(deletedClasses)>", 2);		
+	logMessage("Changed classes: <sort(changedClasses)>", 2);	
+	logMessage("Number of changed classes ??? - first sanitize: <size(changedClasses)>", 2);		
 	visit (inputSet) {
 		case cAdded:addedClass(_) : returnSet += cAdded;
 		case cDeleted:deletedClass(_): returnSet += cDeleted;	    	 
@@ -274,10 +281,11 @@ public void findAllFieldAndClassChanges(list [loc] projectList) {
 	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
 									+ getClassesWithFieldChanges(oldModel, newModel, oldFields, newFields);
 	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
-	set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel, oldFields, newFields);
-	for (aField <- tempFields) {fieldChanges += aField; }
-	tempFields = getAllChangedFields(oldModel, newModel, oldFields, newFields);
-	for (aField <- tempFields) {fieldChanges += aField; }
+	
+	//set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel, oldFields, newFields);
+	//for (aField <- tempFields) {fieldChanges += aField; }
+	//tempFields = getAllChangedFields(oldModel, newModel, oldFields, newFields);
+	//for (aField <- tempFields) {fieldChanges += aField; }
 }
 
 
@@ -304,6 +312,7 @@ public void printAllResults() {
 
 
 public void testAndroidProjects() {
+	println("Starting....<now()>"); 
 	findAllFieldAndClassChanges(androidProjects);
 	printAllResults();
 	//iprintln(sort(classChanges)); println();
@@ -312,6 +321,7 @@ public void testAndroidProjects() {
 
 
 public void testChangedProjects() {
+	println("Starting....<now()>"); 
 	findAllFieldAndClassChanges(changedProjects);
 	printAllResults();
 	//iprintln(sort(classChanges)); println();
