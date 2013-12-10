@@ -28,8 +28,6 @@ import util::FileSystem;
 import analysis::graphs::Graph;
 extend analysis::m3::TypeSymbol;
 
-public loc cacheDir = |project://AdvancedTrack/cache|;
-
 public list[loc] projects = [
 							//|project://GuavaRelease01|,
 							//|project://GuavaRelease02|,
@@ -57,18 +55,27 @@ public void runJAR(int maxApiLevel) {
 	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsJAR(versions);
 	list[M3] models = [ getM3ModelByLocation(l) | <_,l> <- modelLocations ];
 
-	//check models
+	bool printInfo = false;
+	if (printInfo) {
+		printModelInfo(models);
+	} else {
+		//check models
+		logMessage("Comparing m3 models... ", 1);
+		list[VersionTransition] transitions = compareM3Models(models);
+		logMessage("Print compare results... ", 1);
+		printTransitions(transitions);
+	}
+}
+
+public void printModelInfo(list[M3] models) {
 	for (model <- models) {
-		str message = "<model.id>:\t"; 
+		str message = "<model.id>:\t#annotations\t"; 
 		message += "<size([m|<m,_> <- model@annotations, isClass(m)])> class\t\t";
 		message += "<size([m|<m,_> <- model@annotations, isInterface(m)])> interfaces\t\t";
 		message += "<size([m|<m,_> <- model@annotations, isMethod(m)])> methods\t";
 		message += "<size([m|<m,_> <- model@annotations, isField(m)])> fields";
 		println(message);
 	}	
-	//logMessage("Comparing m3 models... ", 1);
-//	list[VersionTransition] transitions = compareM3Models(models);
-	//printTransitions(transitions);
 }
 
 public void run() {
@@ -161,31 +168,31 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 			case unchanged(_): unchangedMethods += 1;
 			
 			case deprecated(locator): {
-				println("\tDEPRECATED: <locator>");
+				//println("\tDEPRECATED: <locator>");
 				changedMethods += locator;
 				deprecatedMethods += 1;
 			}
 			
 			case undeprecated(locator): {
-				println("\tUNDEPRECATED: <locator>");
+				//println("\tUNDEPRECATED: <locator>");
 				changedMethods += locator;
 				undeprecatedMethods += 1;
 			}
 			
 			case signatureChanged(old,new): {
-				println("\tSIGNATURE CHANGE: <old> IS NOW: <new>");
+				//println("\tSIGNATURE CHANGE: <old> IS NOW: <new>");
 				changedMethods += old;
 				signatureChangedMethods += 1;
 			}
 			
 			case returnTypeChanged(locator, oldType, newType): {
-				println("\tRETURN TYPE CHANGE OF <locator>: <oldType> is now <newType>");
+				//println("\tRETURN TYPE CHANGE OF <locator>: <oldType> is now <newType>");
 				changedMethods += locator;
 				returnTypeChangedMethods += 1;
 			}
 			
 			case added(locator): {
-				println("\tADDED: <locator>");
+				//println("\tADDED: <locator>");
 				addedMethods += 1;
 			}
 			
