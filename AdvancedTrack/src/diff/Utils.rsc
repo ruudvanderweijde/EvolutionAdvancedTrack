@@ -16,6 +16,8 @@ import lang::java::jdt::m3::Core;
 
 import lang::csv::IO;
 
+public loc cacheDir = |project://AdvancedTrack/cache|;
+
 							
 @logLevel {
 	Log level 0 => no logging;
