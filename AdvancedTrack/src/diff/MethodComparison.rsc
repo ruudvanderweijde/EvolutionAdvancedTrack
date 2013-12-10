@@ -17,62 +17,6 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 
-public MethodSignature convertDeclarationToSignature(Declaration decl) {
-	MethodSignature signature = nil();
-	visit(decl) {
-		case \constructor(str name, list[Declaration] parameters, list[Expression] exceptions, _): signature = nil();
-		case \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, _): signature = nil();
-		case \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions): signature = nil();
-	}
-
-	return signature;
-}
-
-private bool isNil(MethodSignature signature) {
-	visit (signature) {
-		case nil(): return true;
-	};
-
-	return false;
-}
-
-public bool checkSignatureChange(MethodSignature signatureA, MethodSignature signatureB, bool considerParameterNames) {
-	if (isNil(signatureA) || isNil(signatureB)) return false;
-
-	// this actually works as this is interpreted on runtime :)
-    if (signatureA.location != signatureB.location) return true;
-    
-    if (signatureA.modifiers != signatureB.modifiers) return true;
-    
-    bool changedParameters = false;
-    
-    if (!considerParameterNames) equalParameters = (signatureA.params != signatureB.params);
-    else {
-        list[NamelessParameter] paramsA = extractParametersWithoutNames(signatureA);
-        list[NamelessParameter] paramsB = extractParametersWithoutNames(signatureB);
-        
-        changedParameters = (paramsA != paramsB);
-    }
-    
-    if (signatureA.returnType != SignatureB.returnType) return true;
-    
-    // results in no change if none of the fields have changed
-    return (signatureA.exceptions != SignatureB.exceptions);
-}
-
-public list[NamelessParameter] extractParametersWithoutNames(MethodSignature signature) {
-    list[NamelessParameter] paramsList = [];
-
-    for (params <- signature.params) {
-        visit(params) {
-            case \parameter(Type \type, _, int extraDimensions): paramsList += namelessParameter(\type, extraDimensions);
-            case \vararg(Type \type): paramsList += varargs(\type);
-        };
-    }
-    
-    return paramList;
-}
-
 public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	map[loc, set[loc]] modelHierarchyOld = getModelHierarchy(old);
 	map[loc, set[loc]] modelHierarchyNew = getModelHierarchy(new);
@@ -220,50 +164,12 @@ private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
 	return <methodName, parameters>;
 }
 
-private set[loc] getParentHierarchy(loc classOrInterface, M3 model) {
-	set[loc] totalParentsFound = {};
-	bool done = false;
-	while (!done) {
-		set[loc] parentsFound = { x.to | x <- model@extends, x.from == classOrInterface };
-		totalParentsFound += parentsFound; // parents, one max in java :), our set will be of size 1 max
-		if (isEmpty(parentsFound)) {
-			done = true;
-			break;
-		}
-		assert(size(parentsFound) == 1);
-		classOrInterface = getOneFrom(parentsFound);
-	}
-	
-	return totalParentsFound;
-}
-
-
-private set[loc] getChildrenHierarchy(loc classOrInterface, M3 model) {
-	set[loc] getChildrenOfChild(loc locator) { return getChildrenHierarchy(locator, model); }
-	set[loc] childrenFound = { x.from | x <- model@extends, x.to == classOrInterface }; // children, can be more than one
-	set[set[loc]] recursiveChildren = (mapper(childrenFound, getChildrenOfChild)); 	// Gather childrens children
-	return childrenFound + ({} | it + e | set[loc] e <- recursiveChildren);
-}
-
-// java+method://package/path/Main/Main(args)
-public tuple[bool, loc] findMethodInInheritanceHierarchy(loc method, M3 model, map[loc, set[loc]] modelHierarchy, loc encapsulatingClassOrInterface) {
-	str methodToFind = method.file; // gets last segment 
-
-	// TODO: might figure a great transitive closure out here :)
-	parentClasses = getParentHierarchy(encapsulatingClassOrInterface, model);
-	childClasses = getChildrenHierarchy(encapsulatingClassOrInterface, model);
-	println("method to find in hierarchy <method> will search in <childClasses>");
-	// TODO: tuple[bool found, loc newPath]
-	return <false, method>;
-}
-
 // TODO: for public methods only
 private set[loc] findDeprecatedMethods(M3 model) {
 	rel[loc declaration, loc annotation] annotationRel = model@annotations;
 	println(model@annotations);
 	return {annotationTuple.declaration | annotationTuple <- annotationRel, annotationTuple.annotation == |java+interface:///java/lang/Deprecated|};
 }
-
 
 private map[loc, set[loc]] getModelHierarchy(M3 model) {
     map[loc class, set[loc] methods] methodsPerClassInterface = ();
@@ -289,24 +195,6 @@ private set[loc] getPublicClassesAndInterfacesForModel(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), isClass(m.definition) || isInterface(m.definition)};
 }
 
-/*
-public M3 createAndroidM3() {
-	loc androidFolder = |file:///Users/abort/Documents/UvA/Software_Evolution/advanced-track-repository/android/|;
-	set[str] androidVersionFolders = { "android-1.6_r1.1", "android-2.0_r1" };
-	set[str] sources = { "framework-apache-http/src", "framework-base/awt" };
-	
-	set[loc] directories = {}
-	for (v <- androidVersionFolders) {
-		loc androidVersionFullPath = androidFolder + v;
-		for (s <- sources) {
-			directories += (androidFullPath + s);
-		}
-	}
-
-	return createM3FromDirectory(androidFolder, directories);  
-}
-*/
-
 public M3 createM3FromDirectory(loc project, set[loc] sources, str javaVersion = "1.7") {
     if (!(isDirectory(project))) throw "<project> is not a valid directory";
     set[loc] classPaths = {};
@@ -326,10 +214,10 @@ public M3 createM3FromDirectory(loc project, set[loc] sources, str javaVersion =
     return result;
 }
 
-@memo public map[loc,set[loc]] parents(M3 m) = toMap(invert(m@containment));
+@memo private map[loc,set[loc]] parents(M3 m) = toMap(invert(m@containment));
 
 @doc { Return the package URI for a given class URI. }
-public loc getClassPackage(M3 m, loc c) {
+private loc getClassPackage(M3 m, loc c) {
 	return |file:///|;
 	set[loc] parents = parents(m)[c]?{};
 	if (isEmpty(parents)) {
