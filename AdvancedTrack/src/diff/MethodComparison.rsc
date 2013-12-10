@@ -21,8 +21,8 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	map[loc, set[loc]] modelHierarchyOld = getModelHierarchy(old);
 	map[loc, set[loc]] modelHierarchyNew = getModelHierarchy(new);
 	
-	set[loc] deprecatedMethodsOld = findDeprecatedMethods(old);
-	set[loc] deprecatedMethodsNew = findDeprecatedMethods(new);
+	set[loc] deprecatedMethodsOld = findDeprecations(old);
+	set[loc] deprecatedMethodsNew = findDeprecations(new);
 	
 	rel[loc name, TypeSymbol typ] oldTypes = old@types;
 	rel[loc name, TypeSymbol typ] newTypes = new@types;
@@ -69,7 +69,7 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	            }
 	            
 				//Newly deprecated methods
-				if (method notin deprecatedMethodsNew && method in deprecatedMethodsOld) {
+				if (isDeprecated(method, deprecatedMethodsOld, deprecatedMethodsNew)) {
 					MethodChange undeprecated = undeprecated(method);
 					//deprecated@class = class;
 					//deprecated@package = package;
@@ -162,13 +162,6 @@ private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
 	
 	list[str] parameters = split(",", parametersSegment);
 	return <methodName, parameters>;
-}
-
-// TODO: for public methods only
-private set[loc] findDeprecatedMethods(M3 model) {
-	rel[loc declaration, loc annotation] annotationRel = model@annotations;
-	println(model@annotations);
-	return {annotationTuple.declaration | annotationTuple <- annotationRel, annotationTuple.annotation == |java+interface:///java/lang/Deprecated|};
 }
 
 private map[loc, set[loc]] getModelHierarchy(M3 model) {

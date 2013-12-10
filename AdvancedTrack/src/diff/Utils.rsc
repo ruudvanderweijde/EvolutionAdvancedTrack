@@ -97,3 +97,13 @@ private lrel[int APILevel, loc LocationM3] getM3Locations(str source) {
     // convert string to loc, readCSV is not able to read locs
     return [<a,toLocation(b)> | <a,b> <- res, isFile(toLocation(b))];
 }
+
+public set[loc] findDeprecations(M3 model) {
+	rel[loc declaration, loc annotation] annotationRel = model@annotations;
+	println(model@annotations);
+	return {annotationTuple.declaration | annotationTuple <- annotationRel, annotationTuple.annotation == |java+interface:///java/lang/Deprecated|};
+}
+
+public bool isDeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDeprecated) {
+	return entity notin oldDeprecated && entity in newDeprecated;
+}
