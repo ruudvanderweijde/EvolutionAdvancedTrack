@@ -147,6 +147,14 @@ set [loc] getDeprecatedSetForClass(rel [loc from, loc to] dependencies, loc clas
 }
 
 
+//private set[loc] findDeprecatedM3ss(M3 model) {
+//	rel[loc declaration, loc annotation] annotationRel = model@annotations;
+//	println(model@annotations);
+//	return {annotationTuple.declaration | annotationTuple <- annotationRel, annotationTuple.annotation == |java+interface:///java/lang/Deprecated|};
+//}
+
+
+
 public bool isClassDeprecated(M3 oldModel, M3 newModel, loc className) {
  rel[loc from, loc to] newDependencies = newModel@typeDependency;
  rel[loc from, loc to] oldDependencies = oldModel@typeDependency;
