@@ -14,114 +14,28 @@ import diff::DataType;
 import diff::ProjectAST;
 import DateTime;
 
-data FieldChange = 	  changedField(loc locator) 
-					| addedField(loc locator) 	| deletedField(loc locator);
-
-set [FieldChange] fieldChanges = {};
-
-data ClassChange =    changedClass(loc locator) 
-					| addedClass(loc locator) 	| deletedClass(loc locator);
-
-set [ClassChange] classChanges = {};		
-
-// This method takes set of fields as argument and returns a set of fields which are
-// defined in public classes or interfaces only
-public set [loc] takeFieldsInPublicClasses (M3 model, set[loc] fields) {
-	set [loc] publicClasses = getPublicClassesAndInterfaces(model);
-	set [loc] takenFields = {};
-	for (aField <- fields ) {
-		if (getClassOfAField(model, aField) in publicClasses) {
-			takenFields += aField;
-		}
-	}
-	return takenFields;
+public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel) {
+	set [loc] oldFields = getPublicFieldsForModel(oldModel);
+	set [loc] newFields = getPublicFieldsForModel(newModel);
+	
+	set [ClassChange] classChanges = {};
+	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
+									+ getClassesWithFieldChanges(oldModel, newModel, oldFields, newFields);
+	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
+	return classChanges;
 }
 
-// Don't forget, the Enums should be added. They ar ein M3 in M3@extends annotation
-// | enum name - java.lang.Enum"
-public set[loc] getPublicClassesAndInterfaces(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) ) };
-}
-
-public set[loc] getPublicFieldsForModel(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), isField(m.definition)};
-}
-
-public loc getClassOfAField(M3 model, loc field) {
-	set [loc] classes = {r.from | tuple [loc from, loc to] r <- model@containment, isField(r.to) && r.to == field };
-	if (size(classes) != 1) {
-		println("Error in getClassOfAfield()! ");
-		throw ("The field should have one parent class.");
-	}
-	else { return getOneFrom(classes); }
-}
-
-public set [Modifier] getModifiersOfField(M3 theModel, loc fieldName) {
-	return {model.modifier | model <-theModel@modifiers, model.definition == fieldName};
-}
-
-public set [Modifier] getModifiersOfClass(M3 theModel, loc className) {
+private set [Modifier] getModifiersOfClass(M3 theModel, loc className) {
 	return {model.modifier | model <-theModel@modifiers, model.definition == className};
 }
 
-public bool isFieldModifierChanged (M3 oldModel, M3 newModel, loc fieldName) {
-	return (getModifiersOfField(oldModel, fieldName) != getModifiersOfField(newModel, fieldName)) ;
-}
-
-
-public bool isClassModifierChanged (M3 oldModel, M3 newModel, loc className) {
+private bool isClassModifierChanged (M3 oldModel, M3 newModel, loc className) {
 	return (getModifiersOfClass(oldModel, className) != getModifiersOfClass(newModel, className)) ;
-}
-
-public loc getTypeOfField (M3 theModel, loc fieldName) {
-	list [loc] typeList = [theType.to | theType <- theModel@typeDependency,  theType.from == fieldName];
-	return typeList[0];
-}
-
-// <|java+field:///MyHelloWorld/zbb|,|java+primitiveType:///boolean|>
-// rel[loc from,loc to]
-public bool isFieldTypeChanged (M3 oldModel, M3 newModel, loc fieldName) {
-	return (getTypeOfField(oldModel, fieldName) != getTypeOfField(newModel, fieldName)) ;
-}
-
-// This method returns the set of FieldChanges form added and removed fields only 
-public set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel, set [loc] oldPublicFields, 
-													set [loc] newPublicFields) {
-	set [FieldChange] addRemFieldsSet = {};
-	set [loc] addedFields = takeFieldsInPublicClasses (newModel, (newPublicFields- oldPublicFields));
-	set [loc] removedFields = takeFieldsInPublicClasses (oldModel, (oldPublicFields - newPublicFields));
-	for ( aField <- addedFields) { 	addRemFieldsSet = addRemFieldsSet + addedField(aField); }
-	for ( rField <- removedFields) { 	addRemFieldsSet = addRemFieldsSet + deletedField(rField); }	
-	return addRemFieldsSet;
-}
-
-// This method returns the set of FieldChanges for fields which are changed 
-// (modifier, type or deprecated)
-public set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, set [loc] oldPublicFields, 
-													set [loc] newPublicFields) {
-	set [loc] changedFields = {};
-	set [FieldChange] returnSet = {};
-	set [loc] commonFields = oldPublicFields & newPublicFields;
-	
-	set[loc] oldDeprecations = findDeprecations(oldModel);
-	set[loc] newDeprecations = findDeprecations(newModel);
-	
-	logMessage("Number of common fields: <size(commonFields)>", 2);
-	for (loc oneField <- commonFields)  
-		{ 	if  (	isFieldModifierChanged(oldModel, newModel, oneField) ||
-					isFieldTypeChanged(oldModel, newModel, oneField) 	 ||
-					isDeprecated(oneField, oldDeprecations, newDeprecations) ) {
-				changedFields += (oneField);	
-			}		
-		}
-	set [loc] fieldsInPublicClasses = takeFieldsInPublicClasses(oldModel, changedFields);
-	for ( cField <- fieldsInPublicClasses) { returnSet += changedField(cField); }	
-	return returnSet ;
 }
 
 // Return the set of ClassChanges for added and removed classes, and also 
 // for the classes for which modifiers have changed or are deprecated
-public set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel) {
+private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel) {
 	set [ClassChange] changedClassesSet = {};
 	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel);
 	set [loc] newClasses = getPublicClassesAndInterfaces(newModel);
@@ -147,7 +61,7 @@ public set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel)
 
 // Get the classes which will be marked as changed because they contain
 // a changed, deleted or removed field.
-public set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel,
+private set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel,
 													set [loc] oldPublicFields, 
 													set [loc] newPublicFields) {
 	set [ClassChange] changedClassesSet = {};
@@ -162,7 +76,7 @@ public set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel,
 	return changedClassesSet;
 }
 
-public set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
+private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 	set [loc] addedClasses = {};
 	set [loc] deletedClasses = {};
 	set [loc] changedClasses = {};
@@ -182,37 +96,23 @@ public set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 	return returnSet;
 }
 
-public void findAllFieldAndClassChanges(M3 oldModel, M3 newModel) {
-	set [loc] oldFields = getPublicFieldsForModel(oldModel);
-	set [loc] newFields = getPublicFieldsForModel(newModel);
-	
-	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
-									+ getClassesWithFieldChanges(oldModel, newModel, oldFields, newFields);
-	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
-	
-	set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel, oldFields, newFields);
-	for (aField <- tempFields) {fieldChanges += aField; }
-	tempFields = getAllChangedFields(oldModel, newModel, oldFields, newFields);
-	for (aField <- tempFields) {fieldChanges += aField; }
-}
-
-public void printAllResults() {
-	int numOfAddedClasses = 0; int numOfChangedClasses = 0; int numOfDeletedClasses = 0;
-	visit (classChanges) {
-		case addedClass(_) : numOfAddedClasses += 1;
-		case deletedClass(_): numOfDeletedClasses += 1;	    	 
-		case changedClass (_): numOfChangedClasses += 1;
-	}
-	println("Number of added classes <numOfAddedClasses>");
-	println("Number of deleted classes <numOfDeletedClasses>");
-	println("Number of changed classes <numOfChangedClasses>");
-	int numOfAddedFields = 0; int numOfChangedFields = 0; int numOfDeletedFields = 0;	
-	visit (fieldChanges) {
-		case addedField(_) : numOfAddedFields += 1;
-		case deletedField(_): numOfDeletedFields += 1;	    	 
-		case changedField (_): numOfChangedFields += 1;
-	}
-	println("Number of added fields <numOfAddedFields>");
-	println("Number of deleted fields <numOfDeletedFields>");
-	println("Number of changed fields <numOfChangedFields>");	 
-}
+//public void printAllResults() {
+//	int numOfAddedClasses = 0; int numOfChangedClasses = 0; int numOfDeletedClasses = 0;
+//	visit (classChanges) {
+//		case addedClass(_) : numOfAddedClasses += 1;
+//		case deletedClass(_): numOfDeletedClasses += 1;	    	 
+//		case changedClass (_): numOfChangedClasses += 1;
+//	}
+//	println("Number of added classes <numOfAddedClasses>");
+//	println("Number of deleted classes <numOfDeletedClasses>");
+//	println("Number of changed classes <numOfChangedClasses>");
+//	int numOfAddedFields = 0; int numOfChangedFields = 0; int numOfDeletedFields = 0;	
+//	visit (fieldChanges) {
+//		case addedField(_) : numOfAddedFields += 1;
+//		case deletedField(_): numOfDeletedFields += 1;	    	 
+//		case changedField (_): numOfChangedFields += 1;
+//	}
+//	println("Number of added fields <numOfAddedFields>");
+//	println("Number of deleted fields <numOfDeletedFields>");
+//	println("Number of changed fields <numOfChangedFields>");	 
+//}

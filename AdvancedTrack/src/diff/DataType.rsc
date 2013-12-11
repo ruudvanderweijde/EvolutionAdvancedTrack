@@ -32,7 +32,7 @@ data Change = transition(loc old, loc new) | addition(loc new) | deletion(loc ol
 
 data VersionTransition = versionTransition(loc oldVersion,
 										   loc newVersion,
-										   set[Change] classChanges, 
+										   set[ClassChange] classChanges, 
 										   set[MethodChange] methodChanges, 
 										   set[FieldChange] fieldChanges);
 
@@ -52,6 +52,14 @@ data MethodChange =
 				undeprecated(loc locator) | 
 				added(loc locator) | 
 				deleted(loc locator);
+
+data FieldChange = 	changedField(loc locator) 
+					| addedField(loc locator) 	
+					| deletedField(loc locator);
+
+data ClassChange =  changedClass(loc locator) 
+					| addedClass(loc locator) 	
+					| deletedClass(loc locator);
 
 anno loc MethodChange @ class;
 anno loc MethodChange @ package;
