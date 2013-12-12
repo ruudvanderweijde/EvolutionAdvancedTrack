@@ -179,12 +179,25 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 }
 
 private void printFieldChangeStatistics(set[FieldChange] fieldChanges) {
-	int changedFields = 0, addedFields = 0, deletedFields = 0;
+	int changedFields  = 0, addedFields = 0, deletedFields = 0;
+	set [loc] changedFieldsSet = {};
 	for (FieldChange fieldChange <- sort(fieldChanges)) {
 		visit (fieldChange) {
-			case changedField(locator): {
-				println("\tCHANGED: <locator>");
-				changedFields += 1;
+			case fieldModifierChanged(locator, oldModifiers, newModifiers) : {
+				println("\tCHANGED FIELD: <locator> DUE TO MODIFIER. OLD MODIFIER: <oldModifiers>, NEW MODIFIER: <newModifiers> ");
+				changedFieldsSet += locator;
+			}
+			case fieldTypeChanged(locator, oldType, newType) : {
+				println("\tCHANGED FIELD: <locator> DUE TO TYPE. OLD TYPE: <oldType>, NEW TYPE: <newType> ");
+				changedFieldsSet += locator;
+			}
+			case fieldDeprecated(locator) : {
+				println("\tDEPRECATED: <locator>");
+				changedFieldsSet += locator;
+			}
+			case fieldUndeprecated(locator) : {
+				println("\tUNDEPRECATED: <locator>");
+				changedFieldsSet += locator;
 			}
 			case addedField(locator): {
 				println("\tADDED: <locator>");
@@ -196,6 +209,7 @@ private void printFieldChangeStatistics(set[FieldChange] fieldChanges) {
 			}
 		}
 	}
+	changedFields = size(changedFieldsSet);
 	println("-------In total <changedFields> fields have changed somehow, <addedFields> fields have been added and <deletedFields> fields have been deleted.-------");
 }
 
@@ -257,11 +271,11 @@ private void printClassChangeStatistics(set[ClassChange] classChanges) {
 				changedClassesSet += changedClass;
 			}
 			case classModifierChanged(locator, oldModifiers, newModifiers) : {
-				println("\tCHANGED: <loactor> DUE TO MODIFIER(S). OLD MODIFIERS: <oldModifiers>, NEW MODIFIERS: <newModifiers>");
+				println("\tCHANGED: <locator> DUE TO MODIFIER(S). OLD MODIFIERS: <oldModifiers>, NEW MODIFIERS: <newModifiers>");
 				changedClassesSet += locator;
 			}
 			case classDeprected(locator) : {
-				println("\tDEPRECATED: <locactor>");
+				println("\tDEPRECATED: <locator>");
 				changedClassesSet += locator;
 			}			
 			case classUndeprected(locator) : {

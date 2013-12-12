@@ -34,13 +34,16 @@ data MethodChange =
 				added(loc locator) | 
 				deleted(loc locator);
 
-data FieldChange = 	changedField(loc locator) 
+data FieldChange = 	fieldModifierChanged(loc locator, set [Modifier] oldModifiers, set [Modifier] newModifiers)
+					| fieldTypeChanged(loc locator, loc oldType, loc newType)
+					| fieldDeprecated (loc locator)
+					| fieldUndeprecated(loc locator)  
 					| addedField(loc locator) 	
 					| deletedField(loc locator);
 
 data ClassChange =  classFieldChanged(loc changedClass, loc changedField)
 					| classModifierChanged(loc locator, set [Modifier] oldModifiers, set [Modifier] newModifiers)
-					| classDeprected(loc locator)
+					| classDeprecated(loc locator)
 					| classUndeprecated(loc locator)
 					| addedClass(loc locator) 	
 					| deletedClass(loc locator);
