@@ -48,6 +48,13 @@ public list[loc] projects = [
 							//|project://FerryAndroid3|,
 							//|project://FerryAndroid4|
 							];
+
+public list [loc] changedProjects = [|project://ChangedProject01|,
+							|project://ChangedProject02|
+];							
+
+public str changedPrDir = "tmp";
+
 public str subdirectory = "guava";
 
 public void runJAR(int maxApiLevel) {
@@ -82,6 +89,12 @@ public void printModelInfo(list[M3] models) {
 public void run() {
 	run(subdirectory);
 }
+
+public void runChangedProjects() {
+	projects = changedProjects;
+	run(changedPrDir);
+}
+
 
 public void run(str dir) {
 	logMessage("Getting m3 models...", 1);
@@ -167,18 +180,18 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 
 private void printFieldChangeStatistics(set[FieldChange] fieldChanges) {
 	int changedFields = 0, addedFields = 0, deletedFields = 0;
-	for (FieldChange fieldChange <- fieldChanges) {
+	for (FieldChange fieldChange <- sort(fieldChanges)) {
 		visit (fieldChange) {
 			case changedField(locator): {
 				println("\tCHANGED: <locator>");
 				changedFields += 1;
 			}
 			case addedField(locator): {
-				println("\tCHANGED: <locator>");
+				println("\tADDED: <locator>");
 				addedFields += 1;
 			}
 			case deletedField(locator): {
-				println("\tCHANGED: <locator>");
+				println("\tDELETED: <locator>");
 				deletedFields += 1;
 			}
 		}
@@ -189,7 +202,7 @@ private void printFieldChangeStatistics(set[FieldChange] fieldChanges) {
 private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 	int unchangedMethods = 0, deprecatedMethods = 0, undeprecatedMethods = 0, signatureChangedMethods = 0, returnTypeChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
 	set[loc] changedMethods = {};
-	for (MethodChange methodChange <- methodChanges) {
+	for (MethodChange methodChange <- sort(methodChanges)) {
 		visit(methodChange) {
 			case unchanged(_): unchangedMethods += 1;
 			case deprecated(locator): {
@@ -228,21 +241,35 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 
 private void printClassChangeStatistics(set[ClassChange] classChanges) {
 	int changedClasses = 0, addedClasses = 0, deletedClasses = 0;
-	for (ClassChange classChange <- classChanges) {
+	set [loc] changedClassesSet = {};
+	for (ClassChange classChange <- sort(classChanges)) {
 		visit (classChange) {
-			case changedClass(locator): {
-				println("\tCHANGED: <locator>");
-				changedClasses += 1;
-			}
 			case addedClass(locator): {
-				println("\tCHANGED: <locator>");
+				println("\tADDED: <locator>");
 				addedClasses += 1;
 			}
 			case deletedClass(locator): {
-				println("\tCHANGED: <locator>");
+				println("\tDELETED: <locator>");
 				deletedClasses += 1;
+			}
+			case classFieldChanged(changedClass, changedField): {
+				println("\tCHANGED: <changedClass> DUE TO FIELD: <changedField>");
+				changedClassesSet += changedClass;
+			}
+			case classModifierChanged(locator, oldModifiers, newModifiers) : {
+				println("\tCHANGED: <loactor> DUE TO MODIFIER(S). OLD MODIFIERS: <oldModifiers>, NEW MODIFIERS: <newModifiers>");
+				changedClassesSet += locator;
+			}
+			case classDeprected(locator) : {
+				println("\tDEPRECATED: <locactor>");
+				changedClassesSet += locator;
+			}			
+			case classUndeprected(locator) : {
+				println("\tUNDEPRECATED: <locator>");
+				changedClassesSet += locator;
 			}
 		}
 	}
+	changedClasses = size(changedClassesSet);
 	println("-------In total <changedClasses> classes have changed somehow, <addedClasses> classes have been added and <deletedClasses> classes have been deleted.-------");
 }

@@ -15,11 +15,6 @@ import vis::Render;
 
 import util::ValueUI;
 
-import diff::DataType;
-import diff::Utils;
-import diff::MethodComparison;
-import cigdem::ClassLevelChanges;
-
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
@@ -29,6 +24,27 @@ import analysis::graphs::Graph;
 extend analysis::m3::TypeSymbol;
 
 data Change = transition(loc old, loc new) | addition(loc new) | deletion(loc old);
+
+data MethodChange = 
+				unchanged(loc locator) | 
+				returnTypeChanged(loc method, TypeSymbol oldType, TypeSymbol newType) | 
+				signatureChanged(loc old, loc new) | 
+				deprecated(loc locator) | 
+				undeprecated(loc locator) | 
+				added(loc locator) | 
+				deleted(loc locator);
+
+data FieldChange = 	changedField(loc locator) 
+					| addedField(loc locator) 	
+					| deletedField(loc locator);
+
+data ClassChange =  classFieldChanged(loc changedClass, loc changedField)
+					| classModifierChanged(loc locator, set [Modifier] oldModifiers, set [Modifier] newModifiers)
+					| classDeprected(loc locator)
+					| classUndeprecated(loc locator)
+					| addedClass(loc locator) 	
+					| deletedClass(loc locator);
+
 
 data VersionTransition = versionTransition(loc oldVersion,
 										   loc newVersion,
@@ -44,22 +60,7 @@ data MethodSignature = nil()
 // represents a parameter without considering its name
 data NamelessParameter = vararg(Type \type) | namelessParameter(Type \type, int extraDimensions);
 
-data MethodChange = 
-				unchanged(loc locator) | 
-				returnTypeChanged(loc method, TypeSymbol oldType, TypeSymbol newType) | 
-				signatureChanged(loc old, loc new) | 
-				deprecated(loc locator) | 
-				undeprecated(loc locator) | 
-				added(loc locator) | 
-				deleted(loc locator);
 
-data FieldChange = 	changedField(loc locator) 
-					| addedField(loc locator) 	
-					| deletedField(loc locator);
-
-data ClassChange =  changedClass(loc locator) 
-					| addedClass(loc locator) 	
-					| deletedClass(loc locator);
 
 anno loc MethodChange @ class;
 anno loc MethodChange @ package;

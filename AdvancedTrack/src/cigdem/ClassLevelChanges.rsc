@@ -1,18 +1,21 @@
 module cigdem::ClassLevelChanges
 
-import diff::Utils;
-import lang::java::m3::Core;
-import lang::java::jdt::m3::Core;
-import lang::java::jdt::m3::AST;
+
 import IO;
 import ValueIO;
 import Map;
 import List;
 import Set;
 import util::Math;
-import diff::DataType;
-import diff::ProjectAST;
 import DateTime;
+
+import lang::java::m3::Core;
+import lang::java::jdt::m3::Core;
+import lang::java::jdt::m3::AST;
+
+import diff::DataType;
+import diff::Utils;
+import diff::ProjectAST;
 
 public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel) {
 	set [loc] oldFields = getPublicFieldsForModel(oldModel);
@@ -51,10 +54,20 @@ private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel
 	//logMessage("The number of added classes : <size(addedClasses)>", 2); 
 	//logMessage("The number of removed classes : <size(removedClasses)>", 2); 	
 	for (loc oneClass <- commonClasses)  
-		{ 	if  (	isClassModifierChanged(oldModel, newModel, oneClass) ||
-					isDeprecated(oneClass, oldDeprecations, newDeprecations) ) {
-				changedClassesSet = changedClassesSet + changedClass(oneClass);	
-			}		
+		{ 	if  (	isClassModifierChanged(oldModel, newModel, oneClass) ) { 
+				changedClassesSet += classModifierChanged(oneClass, getModifiersOfClass(oldModel, oneClass),
+																	getModifiersOfClass(newModel, oneClass)
+														 );
+				} 
+			else {
+					if ( isDeprecated(oneClass, oldDeprecations, newDeprecations))  {
+						changedClassesSet += classDeprecated(oneClass);
+					}
+					else 
+						if ( isUndeprecated(oneClass, oldDeprecations, newDeprecations)) {
+						changedClassesSet += classUndeprecated(oneClass);					
+					}
+			}
 		}
 	return changedClassesSet;
 }
@@ -67,13 +80,18 @@ private set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel,
 	set [ClassChange] changedClassesSet = {};
 	set [loc] addedFields = newPublicFields - oldPublicFields;
 	set [loc] removedFields = oldPublicFields - newPublicFields;
-	set [loc] changedNewClasses = {getClassOfAField(newModel, field) | field <- addedFields};
-	set [loc] changedOldClasses = {getClassOfAField(oldModel, field) | field <- removedFields};
-	//logMessage("The number of changed classes because of an added field: <size(changedNewClasses)>", 2);
-	//logMessage("The number of changed classes because of a removed field: <size(changedOldClasses)>", 2);	
-	for (loc oneClass <- changedNewClasses)  { 	changedClassesSet = changedClassesSet + changedClass(oneClass); }		
-	for (loc oneClass <- changedOldClasses)  { 	changedClassesSet = changedClassesSet + changedClass(oneClass); }			
+	for (loc oneField <- addedFields) {
+		changedClassesSet += classFieldChanged(getClassOfAField(newModel, oneField), oneField);
+	}
+	for (loc oneField <- removedFields) {
+		changedClassesSet += classFieldChanged(getClassOfAField(oldModel, oneField), oneField);
+	}
 	return changedClassesSet;
+}
+
+
+private bool isNotInAddedOrDeleted(loc c, set [loc] addedClasses, set [loc] deletedClasses) {
+	return (c notin addedClasses) && (c notin deletedClasses) ;
 }
 
 private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
@@ -84,13 +102,25 @@ private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 	visit (inputSet) {
 		case addedClass(c) : addedClasses += c;
 		case deletedClass(c): deletedClasses += c;	    	 
-		case changedClass (c): changedClasses += c;
+		case classFieldChanged (c, _) : changedClasses += c;
+		case classModifierChanged (c, _, _) : changedClasses += c;
+		case classDeprecated(c): changedClasses += c;
+		case classUndeprecated(c): changedClasses += c;		
 	}	
 	visit (inputSet) {
 		case cAdded:addedClass(_) : returnSet += cAdded;
 		case cDeleted:deletedClass(_): returnSet += cDeleted;	    	 
-		case cChanged:changedClass (c): {
-			if ((c notin addedClasses) && (c notin deletedClasses) ) { returnSet += cChanged;};	
+		case cChanged:classFieldChanged (c, _): { 
+			if (isNotInAddedOrDeleted (c, addedClasses, deletedClasses) ) { returnSet += cChanged;};			
+		}
+		case cChanged:classModifierChanged (c, _, _) : {
+			 returnSet += cChanged;
+		}
+		case cChanged:classDeprecated (c): { 
+			 returnSet += cChanged;			
+		}
+		case cChanged:classUndeprecated (c): { 
+			 returnSet += cChanged;			
 		}
 	}
 	return returnSet;

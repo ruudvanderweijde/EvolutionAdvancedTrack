@@ -111,6 +111,12 @@ public bool isDeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDepreca
 	return entity notin oldDeprecated && entity in newDeprecated;
 }
 
+public bool isUndeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDeprecated) {
+	return entity in oldDeprecated && entity notin newDeprecated;
+}
+
+
+
 // Don't forget, the Enums should be added. They ar ein M3 in M3@extends annotation
 // | enum name - java.lang.Enum"
 public set[loc] getPublicClassesAndInterfaces(M3 model) {
@@ -121,7 +127,7 @@ public loc getClassOfAField(M3 model, loc field) {
 	set [loc] classes = {r.from | tuple [loc from, loc to] r <- model@containment, isField(r.to) && r.to == field };
 	if (size(classes) != 1) {
 		println("Error in getClassOfAfield()! ");
-		throw ("The field should have one parent class.");
+		throw ("The field should have one parent class. Field: <field>, classes: <classes>");
 	}
 	else { return getOneFrom(classes); }
 }
