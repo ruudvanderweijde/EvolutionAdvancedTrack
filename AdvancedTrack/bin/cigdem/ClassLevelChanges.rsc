@@ -64,7 +64,7 @@ private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel
 						changedClassesSet += classDeprecated(oneClass);
 					}
 					else 
-						if ( isUndeprecated(oneClass, oldDeprecations, newDeprecations)) {
+						if ( isUndeprecated(oneClass, oldDeprecations, newDeprecations, newClasses)) {
 						changedClassesSet += classUndeprecated(oneClass);					
 					}
 			}

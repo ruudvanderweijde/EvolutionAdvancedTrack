@@ -111,8 +111,8 @@ public bool isDeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDepreca
 	return entity notin oldDeprecated && entity in newDeprecated;
 }
 
-public bool isUndeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDeprecated) {
-	return entity in oldDeprecated && entity notin newDeprecated;
+public bool isUndeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDeprecated, set[loc] newEntities) {
+	return entity in newEntities && entity in oldDeprecated && entity notin newDeprecated;
 }
 
 

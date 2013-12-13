@@ -67,7 +67,7 @@ private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, set [lo
 					returnSet += fieldDeprecated(oneField);
 				}
 				else {
-					if (isUndeprecated(oneField, oldDeprecations, newDeprecations)) {
+					if (isUndeprecated(oneField, oldDeprecations, newDeprecations, newPublicFields)) {
 						returnSet += fieldUndeprecated(oneField);
 					}
 				}
