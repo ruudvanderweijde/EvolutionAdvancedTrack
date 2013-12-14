@@ -29,6 +29,7 @@ data MethodChange =
 				unchanged(loc locator) | 
 				returnTypeChanged(loc method, TypeSymbol oldType, TypeSymbol newType) | 
 				signatureChanged(loc old, loc new) | 
+				modifierChanged(loc method, set[Modifier] oldModifiers, set[Modifier] newModifiers) |
 				deprecated(loc locator) | 
 				undeprecated(loc locator) | 
 				added(loc locator) | 
