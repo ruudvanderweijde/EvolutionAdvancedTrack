@@ -135,7 +135,7 @@ private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case deleted(locator): {
-				loc classLocator = getClassOfAMethod(newModel, locator);
+				loc classLocator = getClassOfAMethod(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 		}
