@@ -77,8 +77,6 @@ private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, set [lo
 	return returnSet ;
 }
 
-
-
 private bool isFieldModifierChanged (loc fieldName, M3 oldModel, M3 newModel) {
 	return (getModifiersOfField(fieldName, oldModel) != getModifiersOfField(fieldName, newModel)) ;
 }
@@ -93,6 +91,7 @@ private bool isFieldTypeChanged (loc fieldName, M3 oldModel, M3 newModel) {
 	return (getTypeOfField(fieldName, oldModel) != getTypeOfField(fieldName, newModel)) ;
 }
 
+//TODO: map map once and read from this.
 private loc getTypeOfField (loc fieldName, M3 theModel) {
 	list [loc] typeList = [theType.to | theType <- theModel@typeDependency,  theType.from == fieldName];
 	return typeList[0];
