@@ -19,7 +19,7 @@ import diff::DataType;
 import diff::Utils;
 import diff::MethodComparison;
 import diff::FieldComparison;
-import cigdem::ClassLevelChanges;
+import diff::ClassComparison;
 
 import lang::java::m3::Core;
 import lang::java::m3::AST;
@@ -169,7 +169,7 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	set[MethodChange] methodChanges = getMethodChanges(old, new);	
 	set[FieldChange] fieldChanges = getFieldChanges(old, new);
 	//TODO: take methods into account in class changes
-	set[ClassChange] classChanges = getClassChanges(old, new);
+	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges);
 	
 	//TODO: deduce version numbers
 	loc oldVersion = old.id;
@@ -271,8 +271,11 @@ private void printClassChangeStatistics(set[ClassChange] classChanges) {
 				println("\tDELETED: <locator>");
 				deletedClasses += 1;
 			}
-			case classFieldChanged(changedClass, changedField): {
-				println("\tCHANGED: <changedClass> DUE TO FIELD: <changedField>");
+			case classContentChanged(loc changedClass, set[loc] changedContents): {
+				println("\tCHANGED: <changedClass> DUE TO:");
+				for (loc changedContent <- changedContents) {
+					println("\t\t\t<changedContent>");
+				}
 				changedClassesSet += changedClass;
 			}
 			case classModifierChanged(locator, oldModifiers, newModifiers) : {

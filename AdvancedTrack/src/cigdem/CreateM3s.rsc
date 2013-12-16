@@ -21,7 +21,7 @@ public lrel [loc readP, loc writeP] myChangedProjects =
 					 <|project://ChangedProject05|,	|project://tmp//ChangedProject05|>,
 					 <|project://ChangedProject06|,	|project://tmp//ChangedProject06|>,
 					 <|project://ChangedProject07|,	|project://tmp//ChangedProject07|>
-					]; 
+					];
 							 		
 public list[loc] androidProjects = [|project://AndroidSDK14Sources|];
 							 		
