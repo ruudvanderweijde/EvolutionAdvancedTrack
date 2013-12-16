@@ -120,7 +120,7 @@ public bool isUndeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDepre
 // Don't forget, the Enums should be added. They ar ein M3 in M3@extends annotation
 // | enum name - java.lang.Enum"
 public set[loc] getPublicClassesAndInterfaces(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) ) };
+	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) || m.definition.scheme == "java+enum" ) };
 }
 
 public loc getClassOfAField(M3 model, loc field) {
