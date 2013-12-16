@@ -82,19 +82,19 @@ private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
 	for (FieldChange fieldChange <- fieldChanges) {
 		visit(fieldChange) {
 			case fieldModifierChanged(locator, _, _) : {
-				loc classLocator = getClassOfAField(newModel, locator);
+				loc classLocator = getClassOfAField(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case fieldTypeChanged(locator, _, _) : {
-				loc classLocator = getClassOfAField(newModel, locator);
+				loc classLocator = getClassOfAField(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case fieldDeprecated(locator) : {
-				loc classLocator = getClassOfAField(newModel, locator);
+				loc classLocator = getClassOfAField(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case fieldUndeprecated(locator) : {
-				loc classLocator = getClassOfAField(newModel, locator);
+				loc classLocator = getClassOfAField(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case addedField(locator): {
@@ -111,23 +111,23 @@ private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
 	for (MethodChange methodChange <- methodChanges) {
 		visit(methodChange) {
 			case deprecated(locator): {
-				loc classLocator = getClassOfAMethod(newModel, locator);
+				loc classLocator = getClassOfAMethod(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case undeprecated(locator): {
-				loc classLocator = getClassOfAMethod(newModel, locator);
+				loc classLocator = getClassOfAMethod(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case signatureChanged(old,_): {
-				loc classLocator = getClassOfAMethod(newModel, old);
+				loc classLocator = getClassOfAMethod(oldModel, old);
 				changes = addContentChangeToMap(changes, classLocator, old);
 			}
 			case returnTypeChanged(locator, _, _): {
-				loc classLocator = getClassOfAMethod(newModel, locator);
+				loc classLocator = getClassOfAMethod(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case modifierChanged(locator, _, _): {
-				loc classLocator = getClassOfAMethod(newModel, locator);
+				loc classLocator = getClassOfAMethod(oldModel, locator);
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case added(locator): {
