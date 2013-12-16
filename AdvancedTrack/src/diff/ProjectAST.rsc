@@ -81,16 +81,11 @@ public void runDOC(int minApiLevel, int maxApiLevel) {
 	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsDOC(versions);
 	list[M3] models = [ getM3ModelByLocation(l) | <_,l> <- modelLocations ];
 
-	bool printInfo = false;
-	if (printInfo) {
-		printModelInfo(models);
-	} else {
-		//check models
-		logMessage("Comparing m3 models... ", 1);
-		list[VersionTransition] transitions = compareM3Models(models);
-		logMessage("Print compare results... ", 1);
-		printTransitions(transitions);
-	}
+	printModelInfo(models);
+        logMessage("Comparing m3 models... ", 1);
+        list[VersionTransition] transitions = compareM3Models(models);
+        logMessage("Print compare results... ", 1);
+        printTransitions(transitions);
 }
 
 public void printModelInfo(list[M3] models) {
