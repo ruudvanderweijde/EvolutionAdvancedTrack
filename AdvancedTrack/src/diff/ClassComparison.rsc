@@ -1,4 +1,4 @@
-module cigdem::ClassLevelChanges
+module diff::ClassComparison
 
 
 import IO;
@@ -17,13 +17,13 @@ import diff::DataType;
 import diff::Utils;
 import diff::ProjectAST;
 
-public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel) {
+public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges) {
 	set [loc] oldFields = getPublicFieldsForModel(oldModel);
 	set [loc] newFields = getPublicFieldsForModel(newModel);
 	
 	set [ClassChange] classChanges = {};
 	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
-									+ getClassesWithFieldChanges(oldModel, newModel, oldFields, newFields);
+									+ getClassesWithContentChanges(oldModel, newModel, fieldChanges, methodChanges);
 	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
 	return classChanges;
 }
@@ -73,20 +73,85 @@ private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel
 }
 
 // Get the classes which will be marked as changed because they contain
-// a changed, deleted or removed field.
-private set [ClassChange] getClassesWithFieldChanges(M3 oldModel, M3 newModel,
-													set [loc] oldPublicFields, 
-													set [loc] newPublicFields) {
-	set [ClassChange] changedClassesSet = {};
-	set [loc] addedFields = newPublicFields - oldPublicFields;
-	set [loc] removedFields = oldPublicFields - newPublicFields;
-	for (loc oneField <- addedFields) {
-		changedClassesSet += classFieldChanged(getClassOfAField(newModel, oneField), oneField);
+// a changed, deleted or removed field/method.
+private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
+													set[FieldChange] fieldChanges, 
+													set[MethodChange] methodChanges) {
+													
+	map[loc classLoc, set[loc] contentLocs] changes = ();
+	for (FieldChange fieldChange <- fieldChanges) {
+		visit(fieldChange) {
+			case fieldModifierChanged(locator, _, _) : {
+				loc classLocator = getClassOfAField(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case fieldTypeChanged(locator, _, _) : {
+				loc classLocator = getClassOfAField(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case fieldDeprecated(locator) : {
+				loc classLocator = getClassOfAField(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case fieldUndeprecated(locator) : {
+				loc classLocator = getClassOfAField(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case addedField(locator): {
+				loc classLocator = getClassOfAField(newModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case deletedField(locator): {
+				loc classLocator = getClassOfAField(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+		}
 	}
-	for (loc oneField <- removedFields) {
-		changedClassesSet += classFieldChanged(getClassOfAField(oldModel, oneField), oneField);
+	
+	for (MethodChange methodChange <- methodChanges) {
+		visit(methodChange) {
+			case deprecated(locator): {
+				loc classLocator = getClassOfAMethod(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case undeprecated(locator): {
+				loc classLocator = getClassOfAMethod(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case signatureChanged(old,_): {
+				loc classLocator = getClassOfAMethod(oldModel, old);
+				changes = addContentChangeToMap(changes, classLocator, old);
+			}
+			case returnTypeChanged(locator, _, _): {
+				loc classLocator = getClassOfAMethod(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case modifierChanged(locator, _, _): {
+				loc classLocator = getClassOfAMethod(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case added(locator): {
+				loc classLocator = getClassOfAMethod(newModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+			case deleted(locator): {
+				loc classLocator = getClassOfAMethod(oldModel, locator);
+				changes = addContentChangeToMap(changes, classLocator, locator);
+			}
+		}
 	}
-	return changedClassesSet;
+	return { classContentChanged(classLocator, changes[classLocator]) | loc classLocator <- changes };
+}
+
+private map[loc classLoc, set[loc] contentLocs] addContentChangeToMap(map[loc classLoc, set[loc] contentLocs] oldMap, loc classLocator, loc contentChange) {
+	if (classLocator in oldMap) {
+		set[loc] contentChanges = oldMap[classLocator];
+		contentChanges += contentChange;
+		oldMap[classLocator] = contentChanges;
+	} else {
+		oldMap += (classLocator: {contentChange} );
+	}
+	return oldMap;
 }
 
 
@@ -102,7 +167,7 @@ private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 	visit (inputSet) {
 		case addedClass(c) : addedClasses += c;
 		case deletedClass(c): deletedClasses += c;	    	 
-		case classFieldChanged (c, _) : changedClasses += c;
+		case classContentChanged (c, _) : changedClasses += c;
 		case classModifierChanged (c, _, _) : changedClasses += c;
 		case classDeprecated(c): changedClasses += c;
 		case classUndeprecated(c): changedClasses += c;		
@@ -110,7 +175,7 @@ private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 	visit (inputSet) {
 		case cAdded:addedClass(_) : returnSet += cAdded;
 		case cDeleted:deletedClass(_): returnSet += cDeleted;	    	 
-		case cChanged:classFieldChanged (c, _): { 
+		case cChanged:classContentChanged (c, _): { 
 			if (isNotInAddedOrDeleted (c, addedClasses, deletedClasses) ) { returnSet += cChanged;};			
 		}
 		case cChanged:classModifierChanged (c, _, _) : {
@@ -125,24 +190,3 @@ private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 	}
 	return returnSet;
 }
-
-//public void printAllResults() {
-//	int numOfAddedClasses = 0; int numOfChangedClasses = 0; int numOfDeletedClasses = 0;
-//	visit (classChanges) {
-//		case addedClass(_) : numOfAddedClasses += 1;
-//		case deletedClass(_): numOfDeletedClasses += 1;	    	 
-//		case changedClass (_): numOfChangedClasses += 1;
-//	}
-//	println("Number of added classes <numOfAddedClasses>");
-//	println("Number of deleted classes <numOfDeletedClasses>");
-//	println("Number of changed classes <numOfChangedClasses>");
-//	int numOfAddedFields = 0; int numOfChangedFields = 0; int numOfDeletedFields = 0;	
-//	visit (fieldChanges) {
-//		case addedField(_) : numOfAddedFields += 1;
-//		case deletedField(_): numOfDeletedFields += 1;	    	 
-//		case changedField (_): numOfChangedFields += 1;
-//	}
-//	println("Number of added fields <numOfAddedFields>");
-//	println("Number of deleted fields <numOfDeletedFields>");
-//	println("Number of changed fields <numOfChangedFields>");	 
-//}

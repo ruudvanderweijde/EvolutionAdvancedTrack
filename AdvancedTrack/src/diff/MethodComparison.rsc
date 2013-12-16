@@ -27,13 +27,16 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	rel[loc name, TypeSymbol typ] oldTypes = old@types;
 	rel[loc name, TypeSymbol typ] newTypes = new@types;
 	
+	rel[loc definition, Modifier modifier] oldModifiers = old@modifiers;
+	rel[loc definition, Modifier modifier] newModifiers = new@modifiers;
+	
 	loc class = |file:///|;
 	loc package = |file:///|;
 	
 	set[MethodChange] methodTransitions = {};
 	for (loc classOrInterface <- modelHierarchyOld) {
 		class = classOrInterface;
-		assert isClass(class) || isInterface(class);
+		assert isClass(class) || isInterface(class) || class.scheme == "java+enum";
 		package = getClassPackage(old, class);
 		//assert isPackage(package);
 		
@@ -84,6 +87,15 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	            if (returnTypeComparison.changed) {
 	            	MethodChange returnTypeChanged = returnTypeChanged(method, returnTypeComparison.oldType, returnTypeComparison.newType);
 	            	methodTransitions += returnTypeChanged;
+	            	changedMethods += method;
+	            }
+	            
+	            //Modifiers changes
+	            set[Modifier] oldMethodModifiers = oldModifiers[method];
+	            set[Modifier] newMethodModifiers = newModifiers[method];
+	            if (method in methodsInClassOrInterfaceNew && oldMethodModifiers != newMethodModifiers) {
+	            	MethodChange modifierChanged = modifierChanged(method, oldMethodModifiers, newMethodModifiers);
+	            	methodTransitions += modifierChanged;
 	            	changedMethods += method;
 	            }
 	            

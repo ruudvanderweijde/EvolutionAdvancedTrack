@@ -4,5 +4,6 @@ Bundle-Name: AdvancedTrack
 Bundle-SymbolicName: AdvancedTrack
 Bundle-Version: 1.0.0
 Require-Bundle: org.eclipse.imp.pdb.values,
- rascal
+ rascal,
+ org.eclipse.jdt;bundle-version="3.9.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

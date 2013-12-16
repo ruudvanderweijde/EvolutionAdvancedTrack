@@ -11,7 +11,6 @@ import Exception;
 
 import diff::DataType;
 import diff::ProjectAST;
-
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
@@ -36,8 +35,16 @@ public void logMessage(str message, int level) {
 	}
 }
 
+public void writeM3ModelsFromDirectories(list[loc] directories, str name, str subdirectory) {
+	for (directory <- directories) {
+		logMessage("Now writing file <name>...", 1);
+		writeBinaryValueFile(|project://AdvancedTrack/m3/|+"<subdirectory>/<name>.bin.m3", createM3FromDirectory(directory));
+		logMessage("Done.", 1);
+	}
+}
+
 @doc { write m3 models to file system as binary files }
-public void writeM3Models(list[loc] projects, str subdirectory) {
+public void writeM3ModelsFromProjects(list[loc] projects, str subdirectory) {
 	for (project <- projects) {
 		logMessage("Now writing file <project.authority>...", 1);
 		writeBinaryValueFile(|project://AdvancedTrack/m3/|+"<subdirectory>/<project.authority>.bin.m3", createM3FromEclipseProject(project));
@@ -133,6 +140,15 @@ public loc getClassOfAField(M3 model, loc field) {
 	if (size(classes) != 1) {
 		println("Error in getClassOfAfield()! ");
 		throw ("The field should have one parent class. Field: <field>, classes: <classes>");
+	}
+	else { return getOneFrom(classes); }
+}
+
+public loc getClassOfAMethod(M3 model, loc method) {
+	set [loc] classes = {r.from | tuple [loc from, loc to] r <- model@containment, isMethod(r.to) && r.to == method };
+	if (size(classes) != 1) {
+		println("Error in getClassOfAMethod()! ");
+		throw ("The method should have one parent class. Method: <method>, classes: <classes>");
 	}
 	else { return getOneFrom(classes); }
 }

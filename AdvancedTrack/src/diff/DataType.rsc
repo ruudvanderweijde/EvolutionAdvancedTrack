@@ -29,6 +29,7 @@ data MethodChange =
 				unchanged(loc locator) | 
 				returnTypeChanged(loc method, TypeSymbol oldType, TypeSymbol newType) | 
 				signatureChanged(loc old, loc new) | 
+				modifierChanged(loc method, set[Modifier] oldModifiers, set[Modifier] newModifiers) |
 				deprecated(loc locator) | 
 				undeprecated(loc locator) | 
 				added(loc locator) | 
@@ -41,7 +42,7 @@ data FieldChange = 	fieldModifierChanged(loc locator, set [Modifier] oldModifier
 					| addedField(loc locator) 	
 					| deletedField(loc locator);
 
-data ClassChange =  classFieldChanged(loc changedClass, loc changedField)
+data ClassChange =  classContentChanged(loc changedClass, set[loc] changedContent)
 					| classModifierChanged(loc locator, set [Modifier] oldModifiers, set [Modifier] newModifiers)
 					| classDeprecated(loc locator)
 					| classUndeprecated(loc locator)

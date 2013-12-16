@@ -19,7 +19,7 @@ import diff::DataType;
 import diff::Utils;
 import diff::MethodComparison;
 import diff::FieldComparison;
-import cigdem::ClassLevelChanges;
+import diff::ClassComparison;
 
 import lang::java::m3::Core;
 import lang::java::m3::AST;
@@ -182,7 +182,7 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	set[MethodChange] methodChanges = getMethodChanges(old, new);	
 	set[FieldChange] fieldChanges = getFieldChanges(old, new);
 	//TODO: take methods into account in class changes
-	set[ClassChange] classChanges = getClassChanges(old, new);
+	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges);
 	
 	//TODO: deduce version numbers
 	loc oldVersion = old.id;
@@ -227,7 +227,7 @@ private void printFieldChangeStatistics(set[FieldChange] fieldChanges) {
 }
 
 private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
-	int unchangedMethods = 0, deprecatedMethods = 0, undeprecatedMethods = 0, signatureChangedMethods = 0, returnTypeChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
+	int unchangedMethods = 0, deprecatedMethods = 0, undeprecatedMethods = 0, signatureChangedMethods = 0, returnTypeChangedMethods = 0, modifierChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
 	set[loc] changedMethods = {};
 	for (MethodChange methodChange <- sort(methodChanges)) {
 		visit(methodChange) {
@@ -252,6 +252,11 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 				changedMethods += locator;
 				returnTypeChangedMethods += 1;
 			}
+			case modifierChanged(locator, oldModifiers, newModifiers): {
+				println("\tMETHOD MODIFIER CHANGE OF <locator>. OLD: <oldModifiers>. NEW: <newModifiers>");
+				changedMethods += locator;
+				modifierChangedMethods += 1;
+			}
 			case added(locator): {
 				println("\tADDED: <locator>");
 				addedMethods += 1;
@@ -263,7 +268,7 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 		}
 	}
 	println("-------In total <unchangedMethods> methods are unchanged, <size(changedMethods)> methods have changed somehow, <addedMethods> methods have been added and <deletedMethods> methods have been deleted.-------");
-	println("-------Changes in methods: <deprecatedMethods> deprecated, <undeprecatedMethods> undeprecated, <signatureChangedMethods> signature change and <returnTypeChangedMethods> return type change.-------");
+	println("-------Changes in methods: <deprecatedMethods> deprecated, <undeprecatedMethods> undeprecated, <signatureChangedMethods> signature change, <returnTypeChangedMethods> return type changes and <modifierChangedMethods> method modifier changes. -------");
 }
 
 private void printClassChangeStatistics(set[ClassChange] classChanges) {
@@ -279,8 +284,11 @@ private void printClassChangeStatistics(set[ClassChange] classChanges) {
 				println("\tDELETED: <locator>");
 				deletedClasses += 1;
 			}
-			case classFieldChanged(changedClass, changedField): {
-				println("\tCHANGED: <changedClass> DUE TO FIELD: <changedField>");
+			case classContentChanged(loc changedClass, set[loc] changedContents): {
+				println("\tCHANGED: <changedClass> DUE TO:");
+				for (loc changedContent <- changedContents) {
+					println("\t\t\t<changedContent>");
+				}
 				changedClassesSet += changedClass;
 			}
 			case classModifierChanged(locator, oldModifiers, newModifiers) : {

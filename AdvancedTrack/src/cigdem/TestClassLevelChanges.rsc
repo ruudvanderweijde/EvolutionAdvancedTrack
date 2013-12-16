@@ -1,16 +1,18 @@
 module cigdem::TestClassLevelChanges
 
-import cigdem::ClassLevelChanges;
-import diff::Utils;
+
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import IO;
 import ValueIO;
 import Map;
+import String;
 import List;
 import Set;
 import diff::DataType;
+import diff::Utils;
+import diff::ProjectAST;
 
 public list[loc] androidProjects = [
 							//|project://platform_development-android-2.1_r1|
@@ -23,37 +25,135 @@ public list[loc] androidProjects = [
 
 
 
-public list [loc] guava2Projects = [ |project://GuavaRelease14.0|
-									,
-									|project://GuavaRelease15.0|];
+public list [loc] guavaProjects = [|project://GuavaRelease14.0|,
+					|project://GuavaRelease15.0|];
 									
 public list [loc] changedProjects = [|project://tmp//ChangedProject01|,
 									|project://tmp//ChangedProject02|
 									];					
 
-public void testAndroidProjects() {
-	println("Starting....<now()>"); 
-	list[M3] m3Models = getM3Models(androidProjects, "android");
-	findAllFieldAndClassChanges(m3Models[0], m3Models[1]);
-	printAllResults();
-	//iprintln(sort(classChanges)); println();
-	//iprintln(sort(fieldChanges));
+
+set [str] websiteList = {
+"AbstractExecutionThreadService",
+"AbstractIdleService",
+"AbstractListeningExecutorService",
+"AbstractScheduledService",
+"AbstractService",
+"ArrayTable",
+"BaseEncoding",
+"BloomFilter",
+"ByteSink",
+"ByteSource",
+"ByteStreams",
+"CharSink",
+"CharSource",
+"CharStreams",
+"ConcurrentHashMultiset",
+"Constraint",
+"Constraints",
+"ContiguousSet",
+"DiscreteDomain",
+"DoubleMath",
+"FileBackedOutputStream",
+"Files",
+"FluentIterable",
+"ForwardingService",
+"ForwardingSortedMap",
+"Funnels",
+"Futures",
+"GenericMapMaker",
+"HashCode",
+"HashCodes",
+"Hasher",
+"HashFunction",
+"Hashing",
+"HttpHeaders",
+"ImmutableCollection",
+"ImmutableList",
+"ImmutableList.Builder",
+"ImmutableMultimap",
+"ImmutableRangeMap",
+"ImmutableSet.Builder",
+"ImmutableTable",
+"InternetDomainName",
+"Joiner",
+"Joiner.MapJoiner",
+"LinkedListMultimap",
+"ListeningScheduledExecutorService",
+"MapMaker",
+"Maps",
+"MediaType",
+"Monitor.Guard",
+"Multimaps",
+"MutableTypeToInstanceMap",
+"PrimitiveSink",
+"Queues",
+"Service",
+"Service.Listener",
+"Service.State",
+"ServiceManager",
+"ServiceManager.Listener",
+"Sets",
+"Splitter",
+"Stopwatch",
+"TreeBasedTable",
+"TypeToken",
+"UnsignedInteger",
+"UnsignedLong"};
+
+private str getClassNameStr(loc className) {
+	list [str] strList = split("/", className);
+	return last(strList);
 }
 
 
-public void testChangedProjects() {
-	println("Starting....<now()>"); 
-	list[M3] m3Models = getM3Models(changedProjects, "tmp");
-	findAllFieldAndClassChanges(m3Models[0], m3Models[1]);
-	printAllResults();
-	//iprintln(sort(classChanges)); println();
-	//iprintln(sort(fieldChanges));
+private set [str] getModelClassStrings (set [loc] classSet) {
+	set [str] returnSet = {};
+	for (loc aClass <- classSet) {
+		returnSet += getClassName(aClass);
+	}
 }
+
+
+private void printDifferences(set [loc] myClassChanges, set [str] classNameList) {
+	modelClassStrSet = getModelClassStrings(myClassChanges);
+	println("The classes which we found but not in Jdiff:");
+	iprintln(modelClassStrSet - classNameList);
+	println("The classes which we do not find but which are in Jdiff are:");
+	iprintln(classNameList - modelClassStrSet);	 
+}
+
+
+
+private set [loc] getClassChangesOnly (set[ClassChange] classChanges) {
+	set [loc] changedClassesSet = {};
+	for (ClassChange classChange <- sort(classChanges)) {
+		visit (classChange) {
+			case classContentChanged(changedClass, _): {
+				changedClassesSet += changedClass;
+			}
+			case classModifierChanged(changedClass, _, _) : {
+				changedClassesSet += changedClass;
+			}
+			case classDeprected(changedClass)   : {
+				changedClassesSet += changedClass;
+			}			
+			case classUndeprected(changedClass) : {
+				changedClassesSet += changedClass;
+			}
+		}
+	}
+	return changedClassesSet;
+}
+
 
 public void testGuavaProjects() {
-	list[M3] m3Models = getM3Models(guava2Projects, "guava");
-	findAllFieldAndClassChanges(m3Models[0], m3Models[1]);
-	iprintln(sort(classChanges)); println();
-	iprintln(sort(fieldChanges));
-	printAllResults();
+	logMessage("Getting m3 models...", 1);
+	list[M3] m3Models = getM3Models(guavaProjects, "guava");
+	logMessage("Comparing m3 models... ", 1);
+	list[VersionTransition] transitions = compareM3Models(m3Models);
+	for (VersionTransition transition <- transitions ) {
+		set [loc] myClassChanges = getClassChangesOnly(transition.classChanges);
+		printDifferences(myClassChanges, websiteList);
+	}
 }
