@@ -36,7 +36,7 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	set[MethodChange] methodTransitions = {};
 	for (loc classOrInterface <- modelHierarchyOld) {
 		class = classOrInterface;
-		assert isClass(class) || isInterface(class);
+		assert isClass(class) || isInterface(class) || class.scheme == "java+enum";
 		package = getClassPackage(old, class);
 		//assert isPackage(package);
 		
