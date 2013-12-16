@@ -24,11 +24,11 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	set[loc] deprecatedMethodsOld = findDeprecations(old);
 	set[loc] deprecatedMethodsNew = findDeprecations(new);
 	
-	rel[loc name, TypeSymbol typ] oldTypes = old@types;
-	rel[loc name, TypeSymbol typ] newTypes = new@types;
-	
-	rel[loc definition, Modifier modifier] oldModifiers = old@modifiers;
-	rel[loc definition, Modifier modifier] newModifiers = new@modifiers;
+	map[loc name, set[TypeSymbol] typ] oldTypes = index(old@types);
+	map[loc name, set[TypeSymbol] typ] newTypes = index(new@types);
+
+	map[loc definition, set[Modifier] modifier] oldModifiers = index(old@modifiers);
+	map[loc definition, set[Modifier] modifier] newModifiers = index(new@modifiers);
 	
 	loc class = |file:///|;
 	loc package = |file:///|;
@@ -91,8 +91,8 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new) {
 	            }
 	            
 	            //Modifiers changes
-	            set[Modifier] oldMethodModifiers = oldModifiers[method];
-	            set[Modifier] newMethodModifiers = newModifiers[method];
+	            set[Modifier] oldMethodModifiers = method in oldModifiers ? oldModifiers[method] : {};
+	            set[Modifier] newMethodModifiers = method in newModifiers ? newModifiers[method] : {};
 	            if (method in methodsInClassOrInterfaceNew && oldMethodModifiers != newMethodModifiers) {
 	            	MethodChange modifierChanged = modifierChanged(method, oldMethodModifiers, newMethodModifiers);
 	            	methodTransitions += modifierChanged;
@@ -136,7 +136,7 @@ private loc findSignatureChange(loc method, set[loc] oldMethods, set[loc] newMet
    return |file:///|; //Not found.
 }
 
-private tuple[bool changed, TypeSymbol old, TypeSymbol new] findMethodReturnTypeChange(loc method, rel[loc, TypeSymbol] oldTypes, rel[loc, TypeSymbol] newTypes) {
+private tuple[bool changed, TypeSymbol old, TypeSymbol new] findMethodReturnTypeChange(loc method, map[loc, set[TypeSymbol]] oldTypes, map[loc, set[TypeSymbol]] newTypes) {
 	try {
 		set[TypeSymbol] oldMethodTypes = oldTypes[method];
 		set[TypeSymbol] newMethodTypes = newTypes[method];
