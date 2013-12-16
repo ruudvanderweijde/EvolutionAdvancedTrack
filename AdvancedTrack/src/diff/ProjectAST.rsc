@@ -75,6 +75,24 @@ public void runJAR(int maxApiLevel) {
 	}
 }
 
+public void runDOC(int minApiLevel, int maxApiLevel) {
+	set[int] versions = toSet([minApiLevel..(maxApiLevel+1)]);
+	logMessage("Getting m3 models...", 1);
+	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsDOC(versions);
+	list[M3] models = [ getM3ModelByLocation(l) | <_,l> <- modelLocations ];
+
+	bool printInfo = false;
+	if (printInfo) {
+		printModelInfo(models);
+	} else {
+		//check models
+		logMessage("Comparing m3 models... ", 1);
+		list[VersionTransition] transitions = compareM3Models(models);
+		logMessage("Print compare results... ", 1);
+		printTransitions(transitions);
+	}
+}
+
 public void printModelInfo(list[M3] models) {
 	for (model <- models) {
 		str message = "<model.id>:\t#annotations\t"; 

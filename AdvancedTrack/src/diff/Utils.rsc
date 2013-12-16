@@ -7,6 +7,7 @@ import ValueIO;
 import DateTime;
 import ListRelation;
 import String;
+import Exception;
 
 import diff::DataType;
 import diff::ProjectAST;
@@ -109,9 +110,13 @@ public lrel[int APILevel, loc LocationM3] getM3Locations(str source) {
 }
 
 public set[loc] findDeprecations(M3 model) {
-	rel[loc declaration, loc annotation] annotationRel = model@annotations;
-	println(model@annotations);
+	try {
+  	rel[loc declaration, loc annotation] annotationRel = model@annotations;
 	return {annotationTuple.declaration | annotationTuple <- annotationRel, annotationTuple.annotation == |java+interface:///java/lang/Deprecated|};
+	} 
+	catch NoSuchAnnotation(e) :
+		println("Warning: annotation tag is missing in the M3 model"); 
+		return {};
 }
 
 public bool isDeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDeprecated) {
