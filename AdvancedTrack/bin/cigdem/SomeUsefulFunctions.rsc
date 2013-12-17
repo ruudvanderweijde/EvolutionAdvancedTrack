@@ -8,7 +8,7 @@ import List;
 import Set;
 import util::Math;
 import diff::Utils;
-import diff::ProjectAST;
+import diff::Core;
 
 public list[loc] myTestProjects = [
 							|project://GuavaRelease01|

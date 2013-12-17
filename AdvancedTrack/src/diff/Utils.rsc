@@ -10,7 +10,7 @@ import String;
 import Exception;
 
 import diff::DataType;
-import diff::ProjectAST;
+import diff::Core;
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
@@ -80,6 +80,11 @@ public void writeTransitionsToCache(list[VersionTransition] transitions) {
 	writeBinaryValueFile(cacheDir+"Transitions.bin.trans", transitions);
 }
 
+@doc { Write transition model to filesystem }
+public void writeTransitionToCache(VersionTransition transition, str name) {
+	writeBinaryValueFile(cacheDir+name, transition);
+}
+
 @doc { Read transition model from filesystem }
 public list[VersionTransition] readTransitionsFromCache() {
 	return readBinaryValueFile(#list[VersionTransition], cacheDir+"Transitions.bin.trans");
@@ -106,6 +111,11 @@ public lrel[int APILevel, loc LocationM3] getM3LocationsSRC(set[int] APILevels) 
 public lrel[int APILevel, loc LocationM3] getM3Locations(str source) {
     lrel[int APILevel, str LocationM3] res = readCSV(#lrel[int APILevel, str LocationM3], |project://AdvancedTrack/csv/| + "M3Locations<source>.csv");
     // convert string to loc, readCSV is not able to read locs
+    for (item <- res) {
+    	if (!isFile(toLocation(item.LocationM3))) {
+    		logMessage("Warning: skipping file  (unable to read): <item.LocationM3>", 1);
+    	}
+    }
     return [<a,toLocation(b)> | <a,b> <- res, isFile(toLocation(b))];
 }
 

@@ -12,7 +12,7 @@ import List;
 import Set;
 import diff::DataType;
 import diff::Utils;
-import diff::ProjectAST;
+import diff::Core;
 
 public list[loc] androidProjects = [
 							//|project://platform_development-android-2.1_r1|
