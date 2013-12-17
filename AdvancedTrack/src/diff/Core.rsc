@@ -206,7 +206,7 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	set[MethodChange] methodChanges = getMethodChanges(old, new, oldModifiers, newModifiers, oldTypes, newTypes);	
 	
 	logMessage("Get field changes...",2);
-	set[FieldChange] fieldChanges = getFieldChanges(old, new, oldModifiers, newModifiers, oldTypes, newTypes);
+	set[FieldChange] fieldChanges = getFieldChanges(old, new);
 
 	logMessage("Get class changes...",2);
 	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges, oldModifiers, newModifiers);

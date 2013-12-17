@@ -164,5 +164,10 @@ public loc getClassOfAMethod(M3 model, loc method) {
 }
 
 public set[loc] getPublicFieldsForModel(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), isField(m.definition)};
+	set [loc] allPublicFields = {m.definition | m <- model@modifiers, m.modifier == \public(), isField(m.definition)};
+	set [loc] allPublicClasses = {m.definition | m <- model@modifiers, m.modifier == \public(),(isClass(m.definition) || isInterface(m.definition) || m.definition.scheme == "java+enum" )};
+	set [loc] publicFieldsInPublicClasses = 
+		{r.from | tuple [loc from, loc to] r <- model@containment, (isField(r.to) && r.to in allPublicFields), (r.from in allPublicClasses) };
+	return 	publicFieldsInPublicClasses;
+	
 }
