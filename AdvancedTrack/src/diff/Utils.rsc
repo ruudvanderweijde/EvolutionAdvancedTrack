@@ -143,22 +143,12 @@ public set[loc] getPublicClassesAndInterfaces(M3 model) {
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) || m.definition.scheme == "java+enum" ) };
 }
 
-public loc getClassOfAField(M3 model, loc field) {
-	set [loc] classes = {r.from | tuple [loc from, loc to] r <- model@containment, isField(r.to) && r.to == field };
-	if (size(classes) != 1) {
-		println("Error in getClassOfAfield()! ");
-		throw ("The field should have one parent class. Field: <field>, classes: <classes>");
+public map[loc enclosed, loc enclosing] getEnclosings(rel[loc from, loc to] containment) {
+	map[loc enclosed, loc enclosing] enclosings = ();
+	for (tuple[loc from, loc to] r <- containment) {
+		enclosings += (r.to : r.from);
 	}
-	else { return getOneFrom(classes); }
-}
-
-public loc getClassOfAMethod(M3 model, loc method) {
-	set [loc] classes = {r.from | tuple [loc from, loc to] r <- model@containment, isMethod(r.to) && r.to == method };
-	if (size(classes) != 1) {
-		println("Error in getClassOfAMethod()! ");
-		throw ("The method should have one parent class. Method: <method>, classes: <classes>");
-	}
-	else { return getOneFrom(classes); }
+	return enclosings;
 }
 
 public set[loc] getPublicFieldsForModel(M3 model) {

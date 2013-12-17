@@ -151,10 +151,10 @@ public void test5() {
 	println("Changes between two projects: <myTestProjects[0]> and <myTestProjects[1]>");
 	println("Number of added fields: <size(addedFields)>");
 	println("Number of removed fields: <size(removedFields)>");	
-	set [loc] changedNewClasses = {getClassOfAField(newModel, field) | field <- addedFields};
-	set [loc] changedOldClasses = {getClassOfAField(oldModel, field) | field <- removedFields};
-	println("The number of changed classes because of an added field: <size(changedNewClasses)>");
-	println("The number of changed classes because of a removed field: <size(changedOldClasses)>");	
+	//set [loc] changedNewClasses = {getClassOfAField(newModel, field) | field <- addedFields};
+	//set [loc] changedOldClasses = {getClassOfAField(oldModel, field) | field <- removedFields};
+	//println("The number of changed classes because of an added field: <size(changedNewClasses)>");
+	//println("The number of changed classes because of a removed field: <size(changedOldClasses)>");	
 }
 
 

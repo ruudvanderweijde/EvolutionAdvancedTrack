@@ -103,16 +103,3 @@ private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel) {
 private map[loc to, loc from] makeFieldTypeMap(M3 model) {
 	return (typeDep.to : typeDep.from[0] | typeDep <- model@typeDependency);
 }
-
-// This method takes set of fields as argument and returns a set of fields which are
-// defined in public classes or interfaces only
-//private set [loc] takeFieldsInPublicClasses (M3 model, set[loc] fields) {
-//	set [loc] publicClasses = getPublicClassesAndInterfaces(model);
-//	set [loc] takenFields = {};
-//	for (aField <- fields ) {
-//		if (getClassOfAField(model, aField) in publicClasses) {
-//			takenFields += aField;
-//		}
-//	}
-//	return takenFields;
-//}

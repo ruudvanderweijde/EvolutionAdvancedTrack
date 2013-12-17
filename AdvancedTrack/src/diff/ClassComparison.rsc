@@ -18,6 +18,7 @@ import diff::DataType;
 import diff::Utils;
 
 public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges) {
+	logMessage("Started getClassChanges()",2);
 	set [loc] oldFields = getPublicFieldsForModel(oldModel);
 	set [loc] newFields = getPublicFieldsForModel(newModel);
 	
@@ -31,6 +32,7 @@ public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChang
 // Return the set of ClassChanges for added and removed classes, and also 
 // for the classes for which modifiers have changed or are deprecated
 private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel) {
+	logMessage("Started getChangedAddedRemovedClasses()",2);
 	set [ClassChange] changedClassesSet = {};
 	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel);
 	set [loc] newClasses = getPublicClassesAndInterfaces(newModel);
@@ -73,32 +75,35 @@ private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel
 private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
 													set[FieldChange] fieldChanges, 
 													set[MethodChange] methodChanges) {
-													
+	logMessage("Started getClassesWithContentChanges()",2);
 	map[loc classLoc, set[loc] contentLocs] changes = ();
+	map[loc enclosed, loc enclosing] oldEnclosings = getEnclosings(oldModel@containment);
+	map[loc enclosed, loc enclosing] newEnclosings = getEnclosings(newModel@containment);
+	
 	for (FieldChange fieldChange <- fieldChanges) {
 		visit(fieldChange) {
 			case fieldModifierChanged(locator, _, _) : {
-				loc classLocator = getClassOfAField(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case fieldTypeChanged(locator, _, _) : {
-				loc classLocator = getClassOfAField(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case fieldDeprecated(locator) : {
-				loc classLocator = getClassOfAField(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case fieldUndeprecated(locator) : {
-				loc classLocator = getClassOfAField(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case addedField(locator): {
-				loc classLocator = getClassOfAField(newModel, locator);
+				loc classLocator = newEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case deletedField(locator): {
-				loc classLocator = getClassOfAField(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 		}
@@ -107,31 +112,31 @@ private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
 	for (MethodChange methodChange <- methodChanges) {
 		visit(methodChange) {
 			case deprecated(locator): {
-				loc classLocator = getClassOfAMethod(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case undeprecated(locator): {
-				loc classLocator = getClassOfAMethod(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case signatureChanged(old,_): {
-				loc classLocator = getClassOfAMethod(oldModel, old);
+				loc classLocator = oldEnclosings[old];
 				changes = addContentChangeToMap(changes, classLocator, old);
 			}
 			case returnTypeChanged(locator, _, _): {
-				loc classLocator = getClassOfAMethod(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case modifierChanged(locator, _, _): {
-				loc classLocator = getClassOfAMethod(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case added(locator): {
-				loc classLocator = getClassOfAMethod(newModel, locator);
+				loc classLocator = newEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 			case deleted(locator): {
-				loc classLocator = getClassOfAMethod(oldModel, locator);
+				loc classLocator = oldEnclosings[locator];
 				changes = addContentChangeToMap(changes, classLocator, locator);
 			}
 		}
@@ -140,6 +145,7 @@ private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
 }
 
 private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
+	logMessage("Started sanitizeClassChanges()",2);
 	set [loc] addedClasses = {};
 	set [loc] deletedClasses = {};
 	set [loc] changedClasses = {};
