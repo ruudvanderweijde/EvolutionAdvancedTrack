@@ -113,7 +113,7 @@ public lrel[int APILevel, loc LocationM3] getM3Locations(str source) {
     // convert string to loc, readCSV is not able to read locs
     for (item <- res) {
     	if (!isFile(toLocation(item.LocationM3))) {
-    		logMessage("Warning: skipping file  (unable to read): <item.LocationM3>", 1);
+    		logMessage("Warning: skipping file  (unable to read): <item.LocationM3>", 2);
     	}
     }
     return [<a,toLocation(b)> | <a,b> <- res, isFile(toLocation(b))];

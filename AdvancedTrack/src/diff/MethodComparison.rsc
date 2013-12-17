@@ -18,15 +18,19 @@ import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 
 public set[MethodChange] getMethodChanges(M3 old, M3 new) {
+	logMessage("Method change: getModelHierarchy",2);
 	map[loc, set[loc]] modelHierarchyOld = getModelHierarchy(old);
 	map[loc, set[loc]] modelHierarchyNew = getModelHierarchy(new);
 	
+	logMessage("Method change: findDeprecations",2);
 	set[loc] deprecatedMethodsOld = findDeprecations(old);
 	set[loc] deprecatedMethodsNew = findDeprecations(new);
 	
+	logMessage("Method change: index types",2);
 	map[loc name, set[TypeSymbol] typ] oldTypes = index(old@types);
 	map[loc name, set[TypeSymbol] typ] newTypes = index(new@types);
 
+	logMessage("Method change: index modifiers",2);
 	map[loc definition, set[Modifier] modifier] oldModifiers = index(old@modifiers);
 	map[loc definition, set[Modifier] modifier] newModifiers = index(new@modifiers);
 	

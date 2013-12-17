@@ -196,9 +196,12 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 
 private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
+	logMessage("Get method changes...",2);
 	set[MethodChange] methodChanges = getMethodChanges(old, new);	
+	logMessage("Get field changes...",2);
 	set[FieldChange] fieldChanges = getFieldChanges(old, new);
 	//TODO: take methods into account in class changes
+	logMessage("Get class changes...",2);
 	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges);
 	
 	//TODO: deduce version numbers
