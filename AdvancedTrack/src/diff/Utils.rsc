@@ -52,8 +52,6 @@ public void writeM3ModelsFromProjects(list[loc] projects, str subdirectory) {
 	}
 }
 
-
-
 @doc { get a list of M3 models from file system }
 public list[M3] getM3Models(list[loc] projects, str subdirectory) {
 	return {
@@ -164,5 +162,17 @@ public loc getClassOfAMethod(M3 model, loc method) {
 }
 
 public set[loc] getPublicFieldsForModel(M3 model) {
+	// todo add check to see if the 'parent' class is public
 	return {m.definition | m <- model@modifiers, m.modifier == \public(), isField(m.definition)};
+}
+
+public map[loc classLoc, set[loc] contentLocs] addContentChangeToMap(map[loc classLoc, set[loc] contentLocs] oldMap, loc classLocator, loc contentChange) {
+	if (classLocator in oldMap) {
+		set[loc] contentChanges = oldMap[classLocator];
+		contentChanges += contentChange;
+		oldMap[classLocator] = contentChanges;
+	} else {
+		oldMap += (classLocator: {contentChange} );
+	}
+	return oldMap;
 }

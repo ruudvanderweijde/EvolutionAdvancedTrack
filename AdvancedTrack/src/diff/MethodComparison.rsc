@@ -172,17 +172,39 @@ private map[loc, set[loc]] getModelHierarchy(M3 model) {
         TODO: find out if interface and class inner classes and methods are represented
         set[loc] projectInnerClasses = nestedClasses();
     */
+	logMessage("\tHierarchy: get classes and interfaces",2);
     set[loc] projectClassesAndInterfaces = getPublicClassesAndInterfaces(model);
+	logMessage("\tHierarchy: to map",2);
     methodModifiersMap = toMap(model@modifiers);
+    //iprintln(methodModifiersMap);
+    //exit;
     
     //TODO: great stuff!
     // iprintln(declaredMethods(model));
     // iprintln(methodModifiersMap);
-    for (loc locator <- projectClassesAndInterfaces) {
-        // Public methods represented in the class or interface
-        set[loc] publicMethods = {m | m <- methods(model, locator), \public() in (methodModifiersMap[m]? ? methodModifiersMap[m] : {})};
-        methodsPerClassInterface += (locator:publicMethods);
-    }
+	logMessage("\tHierarchy: looping (<size(projectClassesAndInterfaces)>)",2);
+	for(loc method <- methods(model)) {
+		loc c = toLocation(replaceFirst(replaceFirst(method.parent.uri, "java+method", "java+class"), "java+constructor", "java+class"));
+		loc i = toLocation(replaceFirst(replaceFirst(method.parent.uri, "java+method", "java+interface"), "java+constructor", "java+interface"));
+		loc e = toLocation(replaceFirst(replaceFirst(method.parent.uri, "java+method", "java+enum"), "java+constructor", "java+enum"));
+		loc parent = |file:///|;	
+		
+		if (c in projectClassesAndInterfaces) {
+			parent = c; 
+		} else if (i in projectClassesAndInterfaces) {
+			parent = i; 
+		} else if (e in projectClassesAndInterfaces) {
+			parent = e; 
+		} else {
+			continue;
+		}
+		
+		if (isClass(parent) || isInterface(parent) || parent.scheme == "java+enum") {
+        	if (\public() in (methodModifiersMap[method]? ? methodModifiersMap[method] : {})) {
+        		methodsPerClassInterface = addContentChangeToMap(methodsPerClassInterface, parent, method);
+        	}
+        }
+	}
     return methodsPerClassInterface;
 }
 

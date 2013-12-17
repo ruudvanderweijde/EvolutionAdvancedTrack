@@ -136,7 +136,7 @@ public void printTransitions(list[VersionTransition] transitions) {
 	writeTransitionsToCache(transitions);
 	logMessage("Writing to cache one by one", 1);
 	for (transition <- transitions) {
-		writeTransitionsToCache(transition, "<transition.oldVersion>-<transition.newVersion>.trans.bin");
+		writeTransitionToCache(transition, "<transition.oldVersion>-<transition.newVersion>.trans.bin");
 	}
 	
 	logMessage("Display results", 1);
