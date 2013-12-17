@@ -8,21 +8,21 @@ import List;
 import Set;
 import util::Math;
 import DateTime;
+import Relation;
 
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
-import lang::java::jdt::m3::AST;
+
 
 import diff::DataType;
 import diff::Utils;
 
-public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges,
-										map [loc, set[Modifier]] oldModifiers, map[loc, set[Modifier]] newModifiers) {
+public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges) {
 	set [loc] oldFields = getPublicFieldsForModel(oldModel);
 	set [loc] newFields = getPublicFieldsForModel(newModel);
 	
 	set [ClassChange] classChanges = {};
-	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel, oldModifiers, newModifiers) 
+	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
 									+ getClassesWithContentChanges(oldModel, newModel, fieldChanges, methodChanges);
 	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
 	return classChanges;
@@ -30,8 +30,7 @@ public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChang
 
 // Return the set of ClassChanges for added and removed classes, and also 
 // for the classes for which modifiers have changed or are deprecated
-private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel,
-														map [loc, set[Modifier]] oldModifiers, map[loc, set[Modifier]] newModifiers) {
+private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel) {
 	set [ClassChange] changedClassesSet = {};
 	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel);
 	set [loc] newClasses = getPublicClassesAndInterfaces(newModel);
@@ -41,6 +40,9 @@ private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel
 	
 	set[loc] oldDeprecations = findDeprecations(oldModel);
 	set[loc] newDeprecations = findDeprecations(newModel);
+
+	map[loc definition, set[Modifier] modifier] oldModifiers = index(oldModel@modifiers);
+	map[loc definition, set[Modifier] modifier] newModifiers = index(newModel@modifiers);
 	
 	for ( aClass <- addedClasses) { changedClassesSet += addedClass(aClass); }
 	for ( rClass <- removedClasses) { changedClassesSet +=  deletedClass(rClass); }
@@ -137,10 +139,6 @@ private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
 	return { classContentChanged(classLocator, changes[classLocator]) | loc classLocator <- changes };
 }
 
-private bool isNotInAddedOrDeleted(loc c, set [loc] addedClasses, set [loc] deletedClasses) {
-	return (c notin addedClasses) && (c notin deletedClasses) ;
-}
-
 private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 	set [loc] addedClasses = {};
 	set [loc] deletedClasses = {};
@@ -158,7 +156,7 @@ private set [ClassChange] sanitizeClassChanges(set [ClassChange] inputSet) {
 		case cAdded:addedClass(_) : returnSet += cAdded;
 		case cDeleted:deletedClass(_): returnSet += cDeleted;	    	 
 		case cChanged:classContentChanged (c, _): { 
-			if (isNotInAddedOrDeleted (c, addedClasses, deletedClasses) ) { returnSet += cChanged;};			
+			if (c notin addedClasses && c notin deletedClasses) { returnSet += cChanged;};			
 		}
 		case cChanged:classModifierChanged (c, _, _) : {
 			 returnSet += cChanged;

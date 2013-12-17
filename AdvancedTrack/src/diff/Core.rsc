@@ -209,7 +209,7 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	set[FieldChange] fieldChanges = getFieldChanges(old, new);
 
 	logMessage("Get class changes...",2);
-	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges, oldModifiers, newModifiers);
+	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges);
 	
 	//TODO: deduce version numbers
 	loc oldVersion = old.id;
