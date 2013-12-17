@@ -1,9 +1,35 @@
 module diff::Visualization
 
+import IO;
+import String;
+
+import vis::Figure;
+import vis::Render;
+
 import diff::DataType;
 import diff::Utils;
 import diff::Core;
 
+public void showResults() {
+	list[VersionTransition] transitions = readTransitionsFromCache();
+	readablePrint(transitions);
+}
+
+public str getReadablePrintHeader() {
+	println("<tabs(8,0)>classes<tabs(2,7)>methods<tabs(2,7)>fields");
+	println("from<tabs(4,4)>to<tabs(4,2)>^\t+\t-\t^\t+\t-\t^\t+\t-\t");
+}
+
+@doc { used in print function to see how many tabs are needed }
+public str tabs(int tabs, int size) {
+        str string = "";
+        int n = (8*tabs)-size;
+        do { 
+                string += "\t"; 
+                n -= 8; 
+        } while (n > 0);
+        return string;
+}
 
 public void visualizeTransitions(list[VersionTransition] transitions) {
 	list[Figure] versions = [];

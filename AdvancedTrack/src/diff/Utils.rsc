@@ -170,3 +170,19 @@ public map[loc classLoc, set[loc] contentLocs] addContentChangeToMap(map[loc cla
 	}
 	return oldMap;
 }
+
+public void printTableHeader() {
+	println("<tabs(8,0)>classes<tabs(3,7)>methods<tabs(3,7)>fields");
+	println("from<tabs(4,4)>to<tabs(4,2)>^\t+\t-\t^\t+\t-\t^\t+\t-\t");
+}
+
+@doc { used in print function to see how many tabs are needed }
+public str tabs(int tabs, int size) {
+        str string = "";
+        int n = (8*tabs)-size;
+        do { 
+                string += "\t"; 
+                n -= 8; 
+        } while (n > 0);
+        return string;
+}

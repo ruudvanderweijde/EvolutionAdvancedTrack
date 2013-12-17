@@ -138,16 +138,49 @@ public void printTransitions(list[VersionTransition] transitions) {
 		writeTransitionToCache(transition, "<transition.oldVersion.authority>-<transition.newVersion.authority>.trans.bin");
 	}
 	
+	printTransitionsFromCache();
+}
+
+public void printTransitionsFromCache() {
+	list[VersionTransition] transitions = readTransitionsFromCache();
 	logMessage("Display results", 1);
+	// cm = classes modified, ca = classes added, cr = classes removed, m = methods, f = fields
+	lrel[loc oldVersion, loc newVersion, 
+			int cm, int ca, int cr, 
+			int mm, int ma, int mr, 
+			int fm, int fa, int fr] tableRows = [];
 	for (VersionTransition transition <- transitions) {
 		println("-------[ Transition from <transition.oldVersion> to <transition.newVersion> ]-------");
 		println("---[FIELDS]---");
-		printFieldChangeStatistics(transition.fieldChanges);
+		map[str,int] fieldChanges = getFieldChangeStatistics(transition.fieldChanges);
 		println("\n---[METHODS]---");
-		printMethodChangeStatistics(transition.methodChanges);
+		map[str,int] methodChanges = getMethodChangeStatistics(transition.methodChanges);
 		println("\n---[CLASSES]---");
-		printClassChangeStatistics(transition.classChanges);
+		map[str,int] classChanges = getClassChangeStatistics(transition.classChanges);
+		tableRows += <transition.oldVersion, transition.newVersion,
+						classChanges["cm"], classChanges["ca"], classChanges["cr"], 
+						methodChanges["mm"], methodChanges["ma"], methodChanges["mr"], 
+						fieldChanges["fm"], fieldChanges["fa"], fieldChanges["fr"]>; 
 	}
+	
+	logMessage("Showing changes in table format", 1);
+	printTableHeader();
+	for (row <- tableRows) { 	
+    	str io = "";
+        io += "<row.oldVersion.authority>"      + tabs(4, size("<row.oldVersion.authority>"));
+        io += "<row.newVersion.authority>"		+ tabs(4, size("<row.newVersion.authority>"));
+        io += "<row.cm>"         + "\t";
+        io += "<row.ca>"         + "\t";
+        io += "<row.cr>"         + "\t";
+        io += "<row.mm>"         + "\t";
+        io += "<row.ma>"         + "\t";
+        io += "<row.mr>"         + "\t";
+        io += "<row.fm>"         + "\t";
+        io += "<row.fa>"         + "\t";
+        io += "<row.fr>"         + "\t";
+        io += "\n";
+        print(io);
+    }
 }
 
 public void runCached() {
@@ -218,7 +251,7 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	return versionTransition(oldVersion, newVersion, classChanges, methodChanges, fieldChanges);
 }
 
-private void printFieldChangeStatistics(set[FieldChange] fieldChanges) {
+private map[str, int] getFieldChangeStatistics(set[FieldChange] fieldChanges) {
 	int changedFields  = 0, addedFields = 0, deletedFields = 0;
 	set [loc] changedFieldsSet = {};
 	for (FieldChange fieldChange <- sort(fieldChanges)) {
@@ -251,9 +284,14 @@ private void printFieldChangeStatistics(set[FieldChange] fieldChanges) {
 	}
 	changedFields = size(changedFieldsSet);
 	println("-------In total <changedFields> fields have changed somehow, <addedFields> fields have been added and <deletedFields> fields have been deleted.-------");
+	return (
+		"fm":changedFields,
+		"fa":addedFields,
+		"fr":deletedFields
+	);
 }
 
-private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
+private map[str, int] getMethodChangeStatistics(set[MethodChange] methodChanges) {
 	int unchangedMethods = 0, deprecatedMethods = 0, undeprecatedMethods = 0, signatureChangedMethods = 0, returnTypeChangedMethods = 0, modifierChangedMethods = 0, addedMethods = 0, deletedMethods = 0;
 	set[loc] changedMethods = {};
 	for (MethodChange methodChange <- sort(methodChanges)) {
@@ -296,9 +334,14 @@ private void printMethodChangeStatistics(set[MethodChange] methodChanges) {
 	}
 	println("-------In total <unchangedMethods> methods are unchanged, <size(changedMethods)> methods have changed somehow, <addedMethods> methods have been added and <deletedMethods> methods have been deleted.-------");
 	println("-------Changes in methods: <deprecatedMethods> deprecated, <undeprecatedMethods> undeprecated, <signatureChangedMethods> signature change, <returnTypeChangedMethods> return type changes and <modifierChangedMethods> method modifier changes. -------");
+	return (
+		"mm":size(changedMethods),
+		"ma":addedMethods,
+		"mr":deletedMethods
+	);
 }
 
-private void printClassChangeStatistics(set[ClassChange] classChanges) {
+private map[str, int] getClassChangeStatistics(set[ClassChange] classChanges) {
 	int changedClasses = 0, addedClasses = 0, deletedClasses = 0;
 	set [loc] changedClassesSet = {};
 	for (ClassChange classChange <- sort(classChanges)) {
@@ -334,4 +377,9 @@ private void printClassChangeStatistics(set[ClassChange] classChanges) {
 	}
 	changedClasses = size(changedClassesSet);
 	println("-------In total <changedClasses> classes have changed somehow, <addedClasses> classes have been added and <deletedClasses> classes have been deleted.-------");
+	return (
+		"cm":changedClasses,
+		"ca":addedClasses,
+		"cr":deletedClasses
+	);
 }
