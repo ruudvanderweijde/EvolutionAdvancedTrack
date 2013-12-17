@@ -108,7 +108,6 @@ public void runChangedProjects() {
 	run(changedPrDir);
 }
 
-
 public void run(str dir) {
 	logMessage("Getting m3 models...", 1);
 	list[M3] models = getM3Models(projects, dir);
@@ -179,10 +178,16 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 
 private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
-	set[MethodChange] methodChanges = getMethodChanges(old, new);	
-	set[FieldChange] fieldChanges = getFieldChanges(old, new);
+	map[loc definition, set[Modifier] modifier] oldModifiers = index(old@modifiers);
+	map[loc definition, set[Modifier] modifier] newModifiers = index(new@modifiers);
+	
+	map[loc name, set[TypeSymbol] typ] oldTypes = index(old@types);
+	map[loc name, set[TypeSymbol] typ] newTypes = index(new@types);
+	
+	set[MethodChange] methodChanges = getMethodChanges(old, new, oldModifiers, newModifiers, oldTypes, newTypes);	
+	set[FieldChange] fieldChanges = getFieldChanges(old, new, oldModifiers, newModifiers, oldTypes, newTypes);
 	//TODO: take methods into account in class changes
-	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges);
+	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges, oldModifiers, newModifiers);
 	
 	//TODO: deduce version numbers
 	loc oldVersion = old.id;

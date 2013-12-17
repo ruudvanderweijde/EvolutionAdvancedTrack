@@ -17,28 +17,22 @@ import diff::DataType;
 import diff::Utils;
 import diff::ProjectAST;
 
-public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges) {
+public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges,
+										map [loc, set[Modifier]] oldModifiers, map[loc, set[Modifier]] newModifiers) {
 	set [loc] oldFields = getPublicFieldsForModel(oldModel);
 	set [loc] newFields = getPublicFieldsForModel(newModel);
 	
 	set [ClassChange] classChanges = {};
-	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
+	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel, oldModifiers, newModifiers) 
 									+ getClassesWithContentChanges(oldModel, newModel, fieldChanges, methodChanges);
 	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
 	return classChanges;
 }
 
-private set [Modifier] getModifiersOfClass(M3 theModel, loc className) {
-	return {model.modifier | model <-theModel@modifiers, model.definition == className};
-}
-
-private bool isClassModifierChanged (M3 oldModel, M3 newModel, loc className) {
-	return (getModifiersOfClass(oldModel, className) != getModifiersOfClass(newModel, className)) ;
-}
-
 // Return the set of ClassChanges for added and removed classes, and also 
 // for the classes for which modifiers have changed or are deprecated
-private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel) {
+private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel,
+														map [loc, set[Modifier]] oldModifiers, map[loc, set[Modifier]] newModifiers) {
 	set [ClassChange] changedClassesSet = {};
 	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel);
 	set [loc] newClasses = getPublicClassesAndInterfaces(newModel);
@@ -53,22 +47,23 @@ private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel
 	for ( rClass <- removedClasses) { changedClassesSet +=  deletedClass(rClass); }
 	//logMessage("The number of added classes : <size(addedClasses)>", 2); 
 	//logMessage("The number of removed classes : <size(removedClasses)>", 2); 	
-	for (loc oneClass <- commonClasses)  
-		{ 	if  (	isClassModifierChanged(oldModel, newModel, oneClass) ) { 
-				changedClassesSet += classModifierChanged(oneClass, getModifiersOfClass(oldModel, oneClass),
-																	getModifiersOfClass(newModel, oneClass)
-														 );
-				} 
-			else {
-					if ( isDeprecated(oneClass, oldDeprecations, newDeprecations))  {
-						changedClassesSet += classDeprecated(oneClass);
-					}
-					else 
-						if ( isUndeprecated(oneClass, oldDeprecations, newDeprecations, newClasses)) {
-						changedClassesSet += classUndeprecated(oneClass);					
-					}
+	for (loc oneClass <- commonClasses) { 	
+		set[Modifier] oldClassModifiers = oneClass in oldModifiers ? oldModifiers[oneClass] : {};
+	    set[Modifier] newClassModifiers = oneClass in newModifiers ? newModifiers[oneClass] : {};
+		
+		if  (oldClassModifiers != newClassModifiers) { 
+			changedClassesSet += classModifierChanged(oneClass, oldClassModifiers, newClassModifiers);
+		} 
+		else {
+			if ( isDeprecated(oneClass, oldDeprecations, newDeprecations))  {
+				changedClassesSet += classDeprecated(oneClass);
+			}
+			else 
+				if ( isUndeprecated(oneClass, oldDeprecations, newDeprecations, newClasses)) {
+				changedClassesSet += classUndeprecated(oneClass);					
 			}
 		}
+	}
 	return changedClassesSet;
 }
 

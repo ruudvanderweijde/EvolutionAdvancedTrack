@@ -36,7 +36,7 @@ data MethodChange =
 				deleted(loc locator);
 
 data FieldChange = 	fieldModifierChanged(loc locator, set [Modifier] oldModifiers, set [Modifier] newModifiers)
-					| fieldTypeChanged(loc locator, loc oldType, loc newType)
+					| fieldTypeChanged(loc locator, TypeSymbol oldType, TypeSymbol newType)
 					| fieldDeprecated (loc locator)
 					| fieldUndeprecated(loc locator)  
 					| addedField(loc locator) 	

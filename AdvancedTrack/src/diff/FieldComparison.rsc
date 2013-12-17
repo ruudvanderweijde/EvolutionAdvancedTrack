@@ -17,7 +17,9 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 
-public set[FieldChange] getFieldChanges(M3 oldModel, M3 newModel) {
+public set[FieldChange] getFieldChanges(M3 oldModel, M3 newModel, 
+										map[loc, set[Modifier]] oldModifiers, map[loc, set[Modifier]] newModifiers,
+										map[loc name, set[TypeSymbol] typ] oldTypes, map[loc name, set[TypeSymbol] typ] newTypes) {
 	set [loc] oldFields = getPublicFieldsForModel(oldModel);
 	set [loc] newFields = getPublicFieldsForModel(newModel);
 	
@@ -25,7 +27,7 @@ public set[FieldChange] getFieldChanges(M3 oldModel, M3 newModel) {
 	set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel, oldFields, newFields);
 	
 	for (aField <- tempFields) {fieldChanges += aField; }
-	tempFields = getAllChangedFields(oldModel, newModel, oldFields, newFields);
+	tempFields = getAllChangedFields(oldModel, newModel, oldFields, newFields, oldModifiers, newModifiers, oldTypes, newTypes);
 	for (aField <- tempFields) {fieldChanges += aField; }
 	
 	return fieldChanges;
@@ -45,7 +47,9 @@ private set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel, se
 // This method returns the set of FieldChanges for fields which are changed 
 // (modifier, type or deprecated)
 private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, set [loc] oldPublicFields, 
-													set [loc] newPublicFields) {
+													set [loc] newPublicFields,
+													map[loc, set[Modifier]] oldModifiers, map[loc, set[Modifier]] newModifiers,
+													map[loc name, set[TypeSymbol] typ] oldTypes, map[loc name, set[TypeSymbol] typ] newTypes) {
 	set [FieldChange] returnSet = {};
 	set [loc] commonFields = oldPublicFields & newPublicFields;
 	set [loc] fieldsInPublicClasses = takeFieldsInPublicClasses(oldModel, commonFields);
@@ -53,14 +57,23 @@ private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, set [lo
 	set[loc] oldDeprecations = findDeprecations(oldModel);
 	set[loc] newDeprecations = findDeprecations(newModel);
 	
+	map[loc, set[loc]] oldFieldTypes = index(oldModel@typeDependency);
+	map[loc, set[loc]] newFieldTypes = index(newModel@typeDependency);
+
 	//logMessage("Number of common fields: <size(commonFields)>", 2);
-	for (loc oneField <- fieldsInPublicClasses) { 	
-		if  (isFieldModifierChanged(oneField, oldModel, newModel)) {
-			returnSet += fieldModifierChanged(oneField, getModifiersOfField(oneField, oldModel), getModifiersOfField(oneField, newModel));
+	for (loc oneField <- fieldsInPublicClasses) {
+		set[Modifier] oldFieldModifiers = oneField in oldModifiers ? oldModifiers[oneField] : {};
+	    set[Modifier] newFieldModifiers = oneField in newModifiers ? newModifiers[oneField] : {};
+				
+		TypeSymbol oldFieldType = getOneFrom(oldTypes[oneField]);
+		TypeSymbol newFieldType = getOneFrom(newTypes[oneField]);
+		
+		if  (oldFieldModifiers != newFieldModifiers) {
+			returnSet += fieldModifierChanged(oneField, oldFieldModifiers, newFieldModifiers);
 		} 
 		else {
-			if (isFieldTypeChanged(oneField, oldModel, newModel)) {
-				returnSet += fieldTypeChanged(oneField, getTypeOfField(oneField, oldModel), getTypeOfField(oneField, newModel)); 
+			if (oldFieldType != newFieldType) {
+				returnSet += fieldTypeChanged(oneField, oldFieldType, newFieldType); 
 			}	
 			else { 
 				if (isDeprecated(oneField, oldDeprecations, newDeprecations)) {
@@ -77,24 +90,8 @@ private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, set [lo
 	return returnSet ;
 }
 
-private bool isFieldModifierChanged (loc fieldName, M3 oldModel, M3 newModel) {
-	return (getModifiersOfField(fieldName, oldModel) != getModifiersOfField(fieldName, newModel)) ;
-}
-
-private set [Modifier] getModifiersOfField(loc fieldName, M3 theModel) {
-	return {model.modifier | model <-theModel@modifiers, model.definition == fieldName};
-}
-
-// <|java+field:///MyHelloWorld/zbb|,|java+primitiveType:///boolean|>
-// rel[loc from,loc to]
-private bool isFieldTypeChanged (loc fieldName, M3 oldModel, M3 newModel) {
-	return (getTypeOfField(fieldName, oldModel) != getTypeOfField(fieldName, newModel)) ;
-}
-
-//TODO: map map once and read from this.
-private loc getTypeOfField (loc fieldName, M3 theModel) {
-	list [loc] typeList = [theType.to | theType <- theModel@typeDependency,  theType.from == fieldName];
-	return typeList[0];
+private map[loc to, loc from] makeFieldTypeMap(M3 model) {
+	return (typeDep.to : typeDep.from[0] | typeDep <- model@typeDependency);
 }
 
 // This method takes set of fields as argument and returns a set of fields which are
