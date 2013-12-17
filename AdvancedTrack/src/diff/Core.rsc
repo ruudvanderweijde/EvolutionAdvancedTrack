@@ -121,7 +121,6 @@ public void runChangedProjects() {
 	run(changedPrDir);
 }
 
-
 public void run(str dir) {
 	logMessage("Getting m3 models...", 1);
 	list[M3] models = getM3Models(projects, dir);
@@ -136,7 +135,7 @@ public void printTransitions(list[VersionTransition] transitions) {
 	writeTransitionsToCache(transitions);
 	logMessage("Writing to cache one by one", 1);
 	for (transition <- transitions) {
-		writeTransitionToCache(transition, "<transition.oldVersion>-<transition.newVersion>.trans.bin");
+		writeTransitionToCache(transition, "<transition.oldVersion.authority>-<transition.newVersion.authority>.trans.bin");
 	}
 	
 	logMessage("Display results", 1);
@@ -196,13 +195,21 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 
 private VersionTransition getVersionTransition(M3 old, M3 new) {
 	//Changed classes can be derived from changed methods and fields.
+
+	map[loc definition, set[Modifier] modifier] oldModifiers = index(old@modifiers);
+	map[loc definition, set[Modifier] modifier] newModifiers = index(new@modifiers);
+	
+	map[loc name, set[TypeSymbol] typ] oldTypes = index(old@types);
+	map[loc name, set[TypeSymbol] typ] newTypes = index(new@types);
+	
 	logMessage("Get method changes...",2);
-	set[MethodChange] methodChanges = getMethodChanges(old, new);	
+	set[MethodChange] methodChanges = getMethodChanges(old, new, oldModifiers, newModifiers, oldTypes, newTypes);	
+	
 	logMessage("Get field changes...",2);
-	set[FieldChange] fieldChanges = getFieldChanges(old, new);
-	//TODO: take methods into account in class changes
+	set[FieldChange] fieldChanges = getFieldChanges(old, new, oldModifiers, newModifiers, oldTypes, newTypes);
+
 	logMessage("Get class changes...",2);
-	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges);
+	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges, oldModifiers, newModifiers);
 	
 	//TODO: deduce version numbers
 	loc oldVersion = old.id;
