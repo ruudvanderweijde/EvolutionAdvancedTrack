@@ -12,6 +12,7 @@ import diff::DataType;
 import diff::Utils;
 import diff::Core;
 
+
 list [loc] guavaProjectList = [|project://GuavaRelease14.0|,
 							|project://GuavaRelease15.0|];
 

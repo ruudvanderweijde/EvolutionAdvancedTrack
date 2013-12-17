@@ -14,8 +14,8 @@ import diff::DataType;
 import diff::Utils;
 import diff::Core;
 
-list [loc] androidProjectList = [|project://android-2-android|,
-							|project://android-3-android|];
+list [loc] androidProjectList = [|project://android-6-android|,
+							|project://android-7-android|];
 
 str androidDirectory = "android/jar";
 
