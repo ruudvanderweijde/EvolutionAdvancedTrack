@@ -94,6 +94,10 @@ private bool isFieldTypeChanged (loc fieldName, M3 oldModel, M3 newModel) {
 //TODO: map map once and read from this.
 private loc getTypeOfField (loc fieldName, M3 theModel) {
 	list [loc] typeList = [theType.to | theType <- theModel@typeDependency,  theType.from == fieldName];
+	// check for empty list
+	if (isEmpty(typeList)) {
+		return |file:///|;
+	}
 	return typeList[0];
 }
 
