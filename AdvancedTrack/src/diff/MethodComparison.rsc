@@ -20,10 +20,11 @@ import lang::java::jdt::m3::AST;
 public set[MethodChange] getMethodChanges(M3 old, M3 new, map[loc definition, 
 										  set[Modifier] modifier] oldModifiers, map[loc definition, set[Modifier] modifier] newModifiers,
 										  map[loc name, set[TypeSymbol] typ] oldTypes, map[loc name, set[TypeSymbol] typ] newTypes) {
-
+	logMessage("Method change: getModelHierarchy",2);
 	map[loc, set[loc]] modelHierarchyOld = getModelHierarchy(old);
 	map[loc, set[loc]] modelHierarchyNew = getModelHierarchy(new);
 	
+	logMessage("Method change: findDeprecations",2);
 	set[loc] deprecatedMethodsOld = findDeprecations(old);
 	set[loc] deprecatedMethodsNew = findDeprecations(new);
 	
@@ -159,7 +160,6 @@ private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
 	return <methodName, parameters>;
 }
 
-@memo
 private map[loc, set[loc]] getModelHierarchy(M3 model) {
     map[loc class, set[loc] methods] methodsPerClassInterface = ();
         /*

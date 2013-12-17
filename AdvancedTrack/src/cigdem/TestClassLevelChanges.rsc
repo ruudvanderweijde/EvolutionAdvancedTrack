@@ -12,7 +12,7 @@ import List;
 import Set;
 import diff::DataType;
 import diff::Utils;
-import diff::ProjectAST;
+import diff::Core;
 
 public list[loc] androidProjects = [
 							//|project://platform_development-android-2.1_r1|
@@ -28,8 +28,8 @@ public list[loc] androidProjects = [
 public list [loc] guavaProjects = [|project://GuavaRelease14.0|,
 					|project://GuavaRelease15.0|];
 									
-public list [loc] changedProjects = [|project://tmp//ChangedProject01|,
-									|project://tmp//ChangedProject02|
+public list [loc] myChangedProjects = [|project://ChangedProject01|,
+									|project://ChangedProject02|
 									];					
 
 
@@ -101,7 +101,7 @@ set [str] websiteList = {
 "UnsignedInteger",
 "UnsignedLong"};
 
-private str getClassNameStr(loc className) {
+private str getClassNameStr(str className) {
 	list [str] strList = split("/", className);
 	return last(strList);
 }
@@ -110,8 +110,9 @@ private str getClassNameStr(loc className) {
 private set [str] getModelClassStrings (set [loc] classSet) {
 	set [str] returnSet = {};
 	for (loc aClass <- classSet) {
-		returnSet += getClassName(aClass);
+		returnSet += getClassNameStr(aClass.path);
 	}
+	return returnSet;
 }
 
 
@@ -144,6 +145,18 @@ private set [loc] getClassChangesOnly (set[ClassChange] classChanges) {
 		}
 	}
 	return changedClassesSet;
+}
+
+
+public void testChangedProjects() {
+	logMessage("Getting m3 models...", 1);
+	list[M3] m3Models = getM3Models(myChangedProjects, "tmp");
+	logMessage("Comparing m3 models... ", 1);
+	list[VersionTransition] transitions = compareM3Models(m3Models);
+	for (VersionTransition transition <- transitions ) {
+		set [loc] myClassChanges = getClassChangesOnly(transition.classChanges);
+		printDifferences(myClassChanges, websiteList);
+	}
 }
 
 

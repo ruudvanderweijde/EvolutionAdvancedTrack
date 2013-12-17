@@ -11,7 +11,7 @@ import Set;
 import util::Math;
 import diff::DataType;
 import diff::Utils;
-import diff::ProjectAST;
+import diff::Core;
 
 public lrel [loc readP, loc writeP] myChangedProjects = 
 					[<|project://ChangedProject01|,	|project://tmp//ChangedProject01|>,

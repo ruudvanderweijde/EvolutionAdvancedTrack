@@ -2,7 +2,7 @@ module diff::Visualization
 
 import diff::DataType;
 import diff::Utils;
-import diff::ProjectAST;
+import diff::Core;
 
 
 public void visualizeTransitions(list[VersionTransition] transitions) {
