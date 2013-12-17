@@ -15,7 +15,6 @@ import lang::java::jdt::m3::AST;
 
 import diff::DataType;
 import diff::Utils;
-import diff::ProjectAST;
 
 public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges,
 										map [loc, set[Modifier]] oldModifiers, map[loc, set[Modifier]] newModifiers) {
@@ -137,18 +136,6 @@ private set [ClassChange] getClassesWithContentChanges(M3 oldModel, M3 newModel,
 	}
 	return { classContentChanged(classLocator, changes[classLocator]) | loc classLocator <- changes };
 }
-
-private map[loc classLoc, set[loc] contentLocs] addContentChangeToMap(map[loc classLoc, set[loc] contentLocs] oldMap, loc classLocator, loc contentChange) {
-	if (classLocator in oldMap) {
-		set[loc] contentChanges = oldMap[classLocator];
-		contentChanges += contentChange;
-		oldMap[classLocator] = contentChanges;
-	} else {
-		oldMap += (classLocator: {contentChange} );
-	}
-	return oldMap;
-}
-
 
 private bool isNotInAddedOrDeleted(loc c, set [loc] addedClasses, set [loc] deletedClasses) {
 	return (c notin addedClasses) && (c notin deletedClasses) ;

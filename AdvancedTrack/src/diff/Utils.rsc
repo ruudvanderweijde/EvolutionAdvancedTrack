@@ -52,8 +52,6 @@ public void writeM3ModelsFromProjects(list[loc] projects, str subdirectory) {
 	}
 }
 
-
-
 @doc { get a list of M3 models from file system }
 public list[M3] getM3Models(list[loc] projects, str subdirectory) {
 	return {
@@ -167,7 +165,18 @@ public set[loc] getPublicFieldsForModel(M3 model) {
 	set [loc] allPublicFields = {m.definition | m <- model@modifiers, m.modifier == \public(), isField(m.definition)};
 	set [loc] allPublicClasses = {m.definition | m <- model@modifiers, m.modifier == \public(),(isClass(m.definition) || isInterface(m.definition) || m.definition.scheme == "java+enum" )};
 	set [loc] publicFieldsInPublicClasses = 
-		{r.from | tuple [loc from, loc to] r <- model@containment, (isField(r.to) && r.to in allPublicFields), (r.from in allPublicClasses) };
+		{r.to | tuple [loc from, loc to] r <- model@containment, (isField(r.to) && r.to in allPublicFields), (r.from in allPublicClasses) };
+	//println ("getFieldsClassesForModel"); iprintln(publicFieldsInPublicClasses);
 	return 	publicFieldsInPublicClasses;
-	
+}
+
+public map[loc classLoc, set[loc] contentLocs] addContentChangeToMap(map[loc classLoc, set[loc] contentLocs] oldMap, loc classLocator, loc contentChange) {
+	if (classLocator in oldMap) {
+		set[loc] contentChanges = oldMap[classLocator];
+		contentChanges += contentChange;
+		oldMap[classLocator] = contentChanges;
+	} else {
+		oldMap += (classLocator: {contentChange} );
+	}
+	return oldMap;
 }
