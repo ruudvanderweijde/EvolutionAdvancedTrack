@@ -74,28 +74,26 @@ private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel) {
 	for (loc oneField <- commonFields) {
 		set[Modifier] oldFieldModifiers = oneField in oldModifiers ? oldModifiers[oneField] : {};
 	    set[Modifier] newFieldModifiers = oneField in newModifiers ? newModifiers[oneField] : {};
-				
-		TypeSymbol oldFieldType = getOneFrom(oldTypes[oneField]);
-		TypeSymbol newFieldType = getOneFrom(newTypes[oneField]);
+						
+		if (oneField in oldTypes && oneField in newTypes) {
+			TypeSymbol oldFieldType = getOneFrom(oldTypes[oneField]);
+			TypeSymbol newFieldType = getOneFrom(newTypes[oneField]);
+			if (oldFieldType != newFieldType) {
+				returnSet += fieldTypeChanged(oneField, oldFieldType, newFieldType); 
+			}
+		} else {
+			logMessage("WARNING - <oneField> NOT FOUND IN BOTH @type SETS, SKIPPING TYPE CHANGE ANALYSIS.",2);
+		}
 		
 		if  (oldFieldModifiers != newFieldModifiers) {
 			returnSet += fieldModifierChanged(oneField, oldFieldModifiers, newFieldModifiers);
-		} 
-		else {
-			if (oldFieldType != newFieldType) {
-				returnSet += fieldTypeChanged(oneField, oldFieldType, newFieldType); 
-			}	
-			else { 
-				if (isDeprecated(oneField, oldDeprecations, newDeprecations)) {
-					returnSet += fieldDeprecated(oneField);
-				}
-				else {
-					if (isUndeprecated(oneField, oldDeprecations, newDeprecations, newPublicFields)) {
-						returnSet += fieldUndeprecated(oneField);
-					}
-				}
-			}
-		} 
+		}
+			
+		if (isDeprecated(oneField, oldDeprecations, newDeprecations)) {
+			returnSet += fieldDeprecated(oneField);
+		} else if (isUndeprecated(oneField, oldDeprecations, newDeprecations, newPublicFields)) {
+			returnSet += fieldUndeprecated(oneField);
+		}
 	}
 	return returnSet ;
 }

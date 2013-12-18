@@ -57,8 +57,8 @@ public str changedPrDir = "tmp";
 
 public str subdirectory = "guava";
 
-public void runJAR(int maxApiLevel) {
-	set[int] versions = toSet([2..(maxApiLevel+1)]);
+public void runJAR(int minApiLevel, int maxApiLevel) {
+	set[int] versions = toSet([minApiLevel..(maxApiLevel+1)]);
 	logMessage("Getting m3 models...", 1);
 	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsJAR(versions);
 	list[M3] models = [ getM3ModelByLocation(l) | <_,l> <- modelLocations ];
