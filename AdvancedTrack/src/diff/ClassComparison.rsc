@@ -19,8 +19,6 @@ import diff::Utils;
 
 public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges) {
 	logMessage("Started getClassChanges()",2);
-	set [loc] oldFields = getPublicFieldsForModel(oldModel);
-	set [loc] newFields = getPublicFieldsForModel(newModel);
 	
 	set [ClassChange] classChanges = {};
 	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
