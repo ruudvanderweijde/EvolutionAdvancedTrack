@@ -17,27 +17,27 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 
-public set[FieldChange] getFieldChanges(M3 oldModel, M3 newModel) {
+public set[FieldChange] getFieldChanges(M3 oldModel, M3 newModel, str whiteListRegex) {
 	
 	logMessage("Start getFieldChanges() ",2);
 	
 	set [FieldChange] fieldChanges = {};
-	set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel);
+	set [FieldChange] tempFields = getAddedAndRemovedFields(oldModel, newModel, whiteListRegex);
 
 	logMessage("getAddedAndRemovedFields is finished",2);
 	
 	for (aField <- tempFields) {fieldChanges += aField; }
-	tempFields = getAllChangedFields(oldModel, newModel);
+	tempFields = getAllChangedFields(oldModel, newModel, whiteListRegex);
 	for (aField <- tempFields) {fieldChanges += aField; }
 	
 	return fieldChanges;
 }
 
 // This method returns the set of FieldChanges form added and removed fields only 
-private set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel) {
+private set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel, str whiteListRegex) {
 	logMessage("Step 1: Start: getAddedAndRemovedFields",2);
-	oldPublicFields = getPublicFieldsForModel(oldModel);
-	newPublicFields = getPublicFieldsForModel(newModel);
+	oldPublicFields = getPublicFieldsForModel(oldModel, whiteListRegex);
+	newPublicFields = getPublicFieldsForModel(newModel, whiteListRegex);
 	logMessage("Step 2: getAddedAndRemovedFields",2);
 	set [FieldChange] addRemFieldsSet = {};
 	set [loc] addedFields = newPublicFields- oldPublicFields;
@@ -52,11 +52,11 @@ private set [FieldChange]  getAddedAndRemovedFields(M3 oldModel, M3 newModel) {
 
 // This method returns the set of FieldChanges for fields which are changed 
 // (modifier, type or deprecated)
-private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel) {
+private set [FieldChange]  getAllChangedFields(M3 oldModel, M3 newModel, str whiteListRegex) {
 	logMessage("Step 1: Start: getAllChangedFields",2);
 
-	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel);
-	set [loc] newPublicFields = getPublicFieldsForModel(newModel);
+	set [loc] oldPublicFields = getPublicFieldsForModel(oldModel, whiteListRegex);
+	set [loc] newPublicFields = getPublicFieldsForModel(newModel, whiteListRegex);
 	set [FieldChange] returnSet = {};
 	set [loc] commonFields = oldPublicFields & newPublicFields;
 	

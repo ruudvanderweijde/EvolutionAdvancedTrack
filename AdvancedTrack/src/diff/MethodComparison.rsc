@@ -19,10 +19,11 @@ import lang::java::jdt::m3::AST;
 
 public set[MethodChange] getMethodChanges(M3 old, M3 new, map[loc definition, 
 										  set[Modifier] modifier] oldModifiers, map[loc definition, set[Modifier] modifier] newModifiers,
-										  map[loc name, set[TypeSymbol] typ] oldTypes, map[loc name, set[TypeSymbol] typ] newTypes) {
+										  map[loc name, set[TypeSymbol] typ] oldTypes, map[loc name, set[TypeSymbol] typ] newTypes,
+										  str whiteListRegex) {
 	logMessage("Method change: getModelHierarchy",2);
-	map[loc, set[loc]] modelHierarchyOld = getModelHierarchy(old);
-	map[loc, set[loc]] modelHierarchyNew = getModelHierarchy(new);
+	map[loc, set[loc]] modelHierarchyOld = getModelHierarchy(old, whiteListRegex);
+	map[loc, set[loc]] modelHierarchyNew = getModelHierarchy(new, whiteListRegex);
 	
 	logMessage("Method change: findDeprecations",2);
 	set[loc] deprecatedMethodsOld = findDeprecations(old);
@@ -160,22 +161,17 @@ private tuple[str, list[str]] extractMethodNameAndParameters(loc method) {
 	return <methodName, parameters>;
 }
 
-private map[loc, set[loc]] getModelHierarchy(M3 model) {
+private map[loc, set[loc]] getModelHierarchy(M3 model, str whiteListRegex) {
     map[loc class, set[loc] methods] methodsPerClassInterface = ();
         /*
         TODO: find out if interface and class inner classes and methods are represented
         set[loc] projectInnerClasses = nestedClasses();
     */
 	logMessage("\tHierarchy: get classes and interfaces",2);
-    set[loc] projectClassesAndInterfaces = getPublicClassesAndInterfaces(model);
+    set[loc] projectClassesAndInterfaces = getPublicClassesAndInterfaces(model, whiteListRegex);
 	logMessage("\tHierarchy: to map",2);
     methodModifiersMap = toMap(model@modifiers);
-    //iprintln(methodModifiersMap);
-    //exit;
-    
-    //TODO: great stuff!
-    // iprintln(declaredMethods(model));
-    // iprintln(methodModifiersMap);
+
 	logMessage("\tHierarchy: looping (<size(projectClassesAndInterfaces)>)",2);
 	for(loc method <- methods(model)) {
 		loc c = toLocation(replaceFirst(replaceFirst(method.parent.uri, "java+method", "java+class"), "java+constructor", "java+class"));

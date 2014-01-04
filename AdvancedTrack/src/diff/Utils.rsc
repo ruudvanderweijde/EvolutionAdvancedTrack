@@ -135,12 +135,13 @@ public bool isUndeprecated(loc entity, set[loc] oldDeprecated, set[loc] newDepre
 	return entity in newEntities && entity in oldDeprecated && entity notin newDeprecated;
 }
 
-
-
 // Don't forget, the Enums should be added. They ar ein M3 in M3@extends annotation
 // | enum name - java.lang.Enum"
-public set[loc] getPublicClassesAndInterfaces(M3 model) {
-	return {m.definition | m <- model@modifiers, m.modifier == \public(), (isClass(m.definition) || isInterface(m.definition) || m.definition.scheme == "java+enum" ) };
+public set[loc] getPublicClassesAndInterfaces(M3 model, str whiteListRegex) {
+	return {m.definition | m <- model@modifiers, 
+		m.modifier == \public(),
+		rexpMatch(m.definition.uri, whiteListRegex),
+	    (isClass(m.definition) || isInterface(m.definition) || m.definition.scheme == "java+enum" ) };
 }
 
 public map[loc enclosed, loc enclosing] getEnclosings(rel[loc from, loc to] containment) {
@@ -151,13 +152,14 @@ public map[loc enclosed, loc enclosing] getEnclosings(rel[loc from, loc to] cont
 	return enclosings;
 }
 
-public set[loc] getPublicFieldsForModel(M3 model) {
-	set [loc] allPublicFields = {m.definition | m <- model@modifiers, m.modifier == \public(), isField(m.definition)};
-	set [loc] allPublicClasses = {m.definition | m <- model@modifiers, m.modifier == \public(),(isClass(m.definition) || isInterface(m.definition) || m.definition.scheme == "java+enum" )};
-	set [loc] publicFieldsInPublicClasses = 
-		{r.to | tuple [loc from, loc to] r <- model@containment, (isField(r.to) && r.to in allPublicFields), (r.from in allPublicClasses) };
-	//println ("getFieldsClassesForModel"); iprintln(publicFieldsInPublicClasses);
-	return 	publicFieldsInPublicClasses;
+public set[loc] getPublicFieldsForModel(M3 model, str whiteListRegex) {
+	set [loc] allPublicFields = {m.definition | m <- model@modifiers, 
+		m.modifier == \public(), 
+		rexpMatch(m.definition.uri, whiteListRegex),
+		isField(m.definition)};
+	set [loc] allPublicClasses = getPublicClassesAndInterfaces(model, whiteListRegex);
+	
+	return publicFieldsInPublicClasses = {r.to | tuple [loc from, loc to] r <- model@containment, (isField(r.to) && r.to in allPublicFields), (r.from in allPublicClasses) };
 }
 
 public map[loc classLoc, set[loc] contentLocs] addContentChangeToMap(map[loc classLoc, set[loc] contentLocs] oldMap, loc classLocator, loc contentChange) {

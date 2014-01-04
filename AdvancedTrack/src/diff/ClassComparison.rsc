@@ -17,11 +17,11 @@ import lang::java::jdt::m3::Core;
 import diff::DataType;
 import diff::Utils;
 
-public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges) {
+public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChange] fieldChanges, set[MethodChange] methodChanges, str whiteListRegex) {
 	logMessage("Started getClassChanges()",2);
 	
 	set [ClassChange] classChanges = {};
-	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel) 
+	set [ClassChange] tempClasses = getChangedAddedRemovedClasses(oldModel, newModel, whiteListRegex) 
 									+ getClassesWithContentChanges(oldModel, newModel, fieldChanges, methodChanges);
 	for (aClass <- sanitizeClassChanges(tempClasses) ) { classChanges += aClass; }
 	return classChanges;
@@ -29,11 +29,11 @@ public set[ClassChange] getClassChanges(M3 oldModel, M3 newModel, set[FieldChang
 
 // Return the set of ClassChanges for added and removed classes, and also 
 // for the classes for which modifiers have changed or are deprecated
-private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel) {
+private set [ClassChange] getChangedAddedRemovedClasses(M3 oldModel, M3 newModel, str whiteListRegex) {
 	logMessage("Started getChangedAddedRemovedClasses()",2);
 	set [ClassChange] changedClassesSet = {};
-	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel);
-	set [loc] newClasses = getPublicClassesAndInterfaces(newModel);
+	set [loc] oldClasses = getPublicClassesAndInterfaces(oldModel, whiteListRegex);
+	set [loc] newClasses = getPublicClassesAndInterfaces(newModel, whiteListRegex);
 	set [loc] addedClasses = newClasses - oldClasses;
 	set [loc] removedClasses = oldClasses  - newClasses;
 	set [loc] commonClasses = oldClasses & newClasses;

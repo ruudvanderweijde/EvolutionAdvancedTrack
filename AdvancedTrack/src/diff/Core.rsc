@@ -58,6 +58,10 @@ public str changedPrDir = "tmp";
 public str subdirectory = "guava";
 
 public void runJAR(int minApiLevel, int maxApiLevel) {
+	runJAR(minApiLevel, maxApiLevel, ".*");
+}
+
+public void runJAR(int minApiLevel, int maxApiLevel, str whiteListRegex) {
 	set[int] versions = toSet([minApiLevel..(maxApiLevel+1)]);
 	logMessage("Getting m3 models...", 1);
 	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsJAR(versions);
@@ -69,13 +73,17 @@ public void runJAR(int minApiLevel, int maxApiLevel) {
 	} else {
 		//check models
 		logMessage("Comparing m3 models... ", 1);
-		list[VersionTransition] transitions = compareM3Models(models);
+		list[VersionTransition] transitions = compareM3Models(models, whiteListRegex);
 		logMessage("Print compare results... ", 1);
 		printTransitions(transitions);
 	}
 }
 
 public void runDOC(int minApiLevel, int maxApiLevel) {
+	runDOC(minApiLevel, maxApiLevel, ".*");
+}
+
+public void runDOC(int minApiLevel, int maxApiLevel, str whiteListRegex) {
 	set[int] versions = toSet([minApiLevel..(maxApiLevel+1)]);
 	logMessage("Getting m3 models...", 1);
 	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsDOC(versions);
@@ -83,12 +91,16 @@ public void runDOC(int minApiLevel, int maxApiLevel) {
 
 	printModelInfo(models);
         logMessage("Comparing m3 models... ", 1);
-        list[VersionTransition] transitions = compareM3Models(models);
+        list[VersionTransition] transitions = compareM3Models(models, whiteListRegex);
         logMessage("Print compare results... ", 1);
         printTransitions(transitions);
 }
 
 public void runSRC(int minApiLevel, int maxApiLevel) {
+	runSRC(minApiLevel, maxApiLevel, ".*");
+}
+
+public void runSRC(int minApiLevel, int maxApiLevel, str whiteListRegex) {
 	set[int] versions = toSet([minApiLevel..(maxApiLevel+1)]);
 	logMessage("Getting m3 models...", 1);
 	lrel[int APILevel, loc LocationM3] modelLocations = getM3LocationsSRC(versions);
@@ -96,7 +108,7 @@ public void runSRC(int minApiLevel, int maxApiLevel) {
 
 	printModelInfo(models);
         logMessage("Comparing m3 models... ", 1);
-        list[VersionTransition] transitions = compareM3Models(models);
+        list[VersionTransition] transitions = compareM3Models(models, whiteListRegex);
         logMessage("Print compare results... ", 1);
         printTransitions(transitions);
 }
@@ -212,7 +224,7 @@ public loc getClass(M3 model, loc location) {
 
 
 @doc { This function returns the differences between a list of M3 models }
-public list[VersionTransition] compareM3Models(list[M3] models) {
+public list[VersionTransition] compareM3Models(list[M3] models, str whiteListRegex) {
 	// precondition
 	if (size(models) < 2) { throw "Precondition failed. Need more than 2 models to compare"; }
 	
@@ -221,12 +233,12 @@ public list[VersionTransition] compareM3Models(list[M3] models) {
 	for (int index <- [0..size(models)-1]) {
 		M3 model1 = models[index];
 		M3 model2 = models[index+1];
-		changes += getVersionTransition(model1, model2);
+		changes += getVersionTransition(model1, model2, whiteListRegex);
 	}
 	return changes;
 }
 
-private VersionTransition getVersionTransition(M3 old, M3 new) {
+private VersionTransition getVersionTransition(M3 old, M3 new, str whiteListRegex) {
 	//Changed classes can be derived from changed methods and fields.
 
 	map[loc definition, set[Modifier] modifier] oldModifiers = index(old@modifiers);
@@ -236,13 +248,13 @@ private VersionTransition getVersionTransition(M3 old, M3 new) {
 	map[loc name, set[TypeSymbol] typ] newTypes = index(new@types);
 	
 	logMessage("Get method changes...",2);
-	set[MethodChange] methodChanges = getMethodChanges(old, new, oldModifiers, newModifiers, oldTypes, newTypes);	
+	set[MethodChange] methodChanges = getMethodChanges(old, new, oldModifiers, newModifiers, oldTypes, newTypes, whiteListRegex);	
 	
 	logMessage("Get field changes...",2);
-	set[FieldChange] fieldChanges = getFieldChanges(old, new);
+	set[FieldChange] fieldChanges = getFieldChanges(old, new, whiteListRegex);
 
 	logMessage("Get class changes...",2);
-	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges);
+	set[ClassChange] classChanges = getClassChanges(old, new, fieldChanges, methodChanges, whiteListRegex);
 	
 	//TODO: deduce version numbers
 	loc oldVersion = old.id;
