@@ -54,10 +54,7 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new, map[loc definition,
 				if (method notin methodsInClassOrInterfaceNew) {
 					loc newMethod = findSignatureChange(method, methodsInClassOrInterfaceOld, methodsInClassOrInterfaceNew);
 					if (newMethod != |file:///|) {
-						println("change <method> to <newMethod>");
 						MethodChange signatureChanged = signatureChanged(method, newMethod);
-						//signatureChanged@class = class;
-						//signatureChanged@package = package; 
 						methodTransitions += signatureChanged;
 						changedMethods += method;
 					}
@@ -66,8 +63,6 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new, map[loc definition,
 				//Newly deprecated methods
 				if (method notin deprecatedMethodsOld && method in deprecatedMethodsNew) {
 					MethodChange deprecated = deprecated(method);
-					//deprecated@class = class;
-					//deprecated@package = package;
 					methodTransitions += deprecated;
                     changedMethods += method;
 	            }
@@ -75,8 +70,6 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new, map[loc definition,
 				//Newly deprecated methods
 				if (isUndeprecated(method, deprecatedMethodsOld, deprecatedMethodsNew, methodsInClassOrInterfaceNew)) {
 					MethodChange undeprecated = undeprecated(method);
-					//deprecated@class = class;
-					//deprecated@package = package;
 					methodTransitions += undeprecated;
                     changedMethods += method;
 	            }
@@ -101,8 +94,6 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new, map[loc definition,
 	            //Unchanged method
 				if(method notin changedMethods) {
 					MethodChange unchanged = unchanged(method);
-					//unchanged@class = class;
-					//unchanged@package = package;
 					methodTransitions += unchanged;
 				}
 		}
@@ -110,8 +101,6 @@ public set[MethodChange] getMethodChanges(M3 old, M3 new, map[loc definition,
 		set[loc] addedMethods = methodsInClassOrInterfaceNew - methodsInClassOrInterfaceOld - changedMethods;
 		for (loc addedMethod <- addedMethods) {
 			MethodChange added = added(addedMethod);
-			//added@class = class;
-			//added@package = package;
 			methodTransitions += added;;
 		}
 
