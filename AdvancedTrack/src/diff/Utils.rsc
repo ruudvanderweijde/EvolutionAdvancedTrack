@@ -88,6 +88,11 @@ public list[VersionTransition] readTransitionsFromCache() {
 	return readBinaryValueFile(#list[VersionTransition], cacheDir+"Transitions.bin.trans");
 }
 
+public VersionTransition readTransitionFromCache(str name) {
+	loc location = cacheDir + (name + ".trans.bin");
+	return readBinaryValueFile(#VersionTransition, location);
+}
+
 @doc { get Android information from csv }
 public lrel[int APILevel, str Version, datetime ReleaseDate] getAndroidVersions() {
         return readCSV(#lrel[int APILevel, str Version, datetime ReleaseDate], |project://AdvancedTrack/csv/Versions.csv|);
