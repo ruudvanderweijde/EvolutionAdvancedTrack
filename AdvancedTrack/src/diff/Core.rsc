@@ -49,12 +49,6 @@ public list[loc] projects = [
 							//|project://FerryAndroid4|
 							];
 
-public list [loc] changedProjects = [|project://ChangedProject01|,
-							|project://ChangedProject02|
-];							
-
-public str changedPrDir = "tmp";
-
 public str subdirectory = "guava";
 
 public void runJAR(int minApiLevel, int maxApiLevel) {
@@ -125,19 +119,14 @@ public void printModelInfo(list[M3] models) {
 }
 
 public void run() {
-	run(subdirectory);
+	run(subdirectory, ".*");
 }
 
-public void runChangedProjects() {
-	projects = changedProjects;
-	run(changedPrDir);
-}
-
-public void run(str dir) {
+public void run(str dir, str whiteListRegex) {
 	logMessage("Getting m3 models...", 1);
 	list[M3] models = getM3Models(projects, dir);
 	logMessage("Comparing m3 models... ", 1);
-	list[VersionTransition] transitions = compareM3Models(models);
+	list[VersionTransition] transitions = compareM3Models(models, whiteListRegex);
 	printTransitions(transitions);
 }
 

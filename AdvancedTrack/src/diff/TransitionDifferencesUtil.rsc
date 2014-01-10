@@ -1,4 +1,4 @@
-module diff::SourcesAnalysisCore
+module diff::TransitionDifferencesUtil
 
 import IO;
 import List;
@@ -19,7 +19,7 @@ import diff::DataType;
 import diff::Utils;
 
 //WARNING: EXPERIMENTAL AND NOT WELL-TESTED ATM
-public void compareSources(lrel[str, str] sources) {
+public void compareVersionTransitions(lrel[str, str] sources) {
 	for (tuple[str firstSourceName, str secondSourceName] source <- sources) {
 		println("Comparing <source.firstSourceName> to <source.secondSourceName>");
 		
