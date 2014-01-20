@@ -26,7 +26,4 @@ When the analysis finishes, the results of the Version Transition analysis will 
 
 --Comparing results of the Version Transition analysis
 When the Version Transition analysis finishes, it writes its results to cache files. These cache files are the input
-of the comparison tool found in TransitionDifferencesUtil. All this does is show the differences between the two VersionTransitions
-to make the comparison easier. It excludes "unchanged" methods (for fields and classes this isn't recorded atm). The
-compareVersionTransitions function takes as input a list relation with strings on both sides. These are the names of the cache files.
-=======
+of the comparison tool found in TransitionDifferencesUtil. All this does is show the differences between the two VersionTransitions to make the comparison easier. It excludes "unchanged" methods (for fields and classes this isn't recorded atm). The compareVersionTransitions function takes as input a list relation with strings on both sides. These are the names of the cache files.
