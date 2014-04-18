@@ -1,0 +1,32 @@
+method(
+  simpleType(simpleName("T")[
+      @decl=|java+typeVariable:///T|,
+      @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenSample2.java|(149,1,<7,1>,<7,2>),
+      @typ=typeParameter(
+        |java+typeVariable:///T|,
+        unbounded())
+    ]),
+  "getT",
+  [],
+  [],
+  block([return(simpleName("anInstance2")[
+          @decl=|java+field:///edu/uva/analysis/gensamples/GenSample2/anInstance2|,
+          @typ=typeParameter(
+            |java+typeVariable:///T|,
+            unbounded()),
+          @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenSample2.java|(170,11,<8,9>,<8,20>)
+        ])[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenSample2.java|(163,19,<8,2>,<8,21>)
+      ]])[
+    @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenSample2.java|(158,28,<7,10>,<9,2>)
+  ])[
+  @typ=method(
+    |java+method:///edu/uva/analysis/gensamples/GenSample2/getT()|,
+    [],
+    typeParameter(
+      |java+typeVariable:///T|,
+      unbounded()),
+    []),
+  @decl=|java+method:///edu/uva/analysis/gensamples/GenSample2/getT()|,
+  @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenSample2.java|(149,37,<7,1>,<9,2>)
+]

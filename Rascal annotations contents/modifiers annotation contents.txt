@@ -1,0 +1,57 @@
+rascal>import inheritance::InitialWork;
+ok
+
+// This is an example for modifiers of fields, there are also modifiers for classes, methods, etc.
+
+rascal>runInitialWork();
+[
+  <|java+field:///edu/uva/analysis/gensamples/Circle/radius|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Circle/x|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Circle/y|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Rectangle/height|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Rectangle/width|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Rectangle/x|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Rectangle/y|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Triangle/a|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Triangle/b|,private()>,
+  <|java+field:///edu/uva/analysis/gensamples/Triangle/c|,private()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantChildClass/constantChildInt|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantChildClass/constantChildInt|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/aParentConstant|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/aParentConstant|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant1|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant1|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant2|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant2|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant22|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant22|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant33|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant33|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant5|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/constant5|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/iAmNotTrue|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantClass/iAmNotTrue|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantGrandChildClass/grandChildInt|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantGrandChildClass/grandChildInt|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/iConstant1|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/iConstant1|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/iConstant2|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/iConstant2|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/iParentConstant|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/iParentConstant|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/ii_constant22|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/ii_constant22|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/ii_constant33|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/ii_constant33|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/ii_constant5|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/ii_constant5|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/ii_iAmNotTrue|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantInterface/ii_iAmNotTrue|,static()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantParentClass/parentInt|,final()>,
+  <|java+field:///edu/uva/analysis/samples/ConstantParentClass/parentInt|,static()>,
+  <|java+field:///edu/uva/analysis/samples/P/intFieldParent|,public()>,
+  <|java+field:///edu/uva/analysis/samples/StatParent/staticParentString|,static()>
+]
+ok
+
+rascal>

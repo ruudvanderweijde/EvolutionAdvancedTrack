@@ -1,0 +1,26 @@
+assignment(simpleName("s")
+    [   @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/Canvas.java|(423,1,<21,2>,<21,3>),
+        @typ=class(|java+class:///edu/uva/analysis/gensamples/Shape|,[]),
+        @decl=|java+variable:///edu/uva/analysis/gensamples/Canvas/aListSample()/s|],
+
+    "=",
+    methodCall(
+        false,
+        simpleName("myList")[
+            @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/Canvas.java|(427,6,<21,6>,<21,12>),
+            @decl=|java+variable:///edu/uva/analysis/gensamples/Canvas/aListSample()/myList|,
+            @typ=interface(|java+interface:///java/util/List|,[class(java+class:///edu/uva/analysis/gensamples/Shape|,[])])
+        ]
+        ,
+        "get",
+        [
+            number("0")[
+                @typ=int(),
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/Canvas.java|(438,1,<21,17>,<21,18>)]
+        ]
+    )
+    [   @decl=|java+method:///java/util/List/get(int)|,
+        @typ=class(|java+class:///edu/uva/analysis/gensamples/Shape|,[]),
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/Canvas.java|(427,13,<21,6>,<21,19>)]
+)
+ok

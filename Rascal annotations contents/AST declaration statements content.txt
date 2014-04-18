@@ -1,0 +1,89 @@
+rascal>import inheritance::InitialWork;
+ok
+
+rascal>runInitialWork();
+|rascal://inheritance::InitialWork|(4492,88,<79,3>,<80,35>): Missing modifier: java
+☞ Advice
+
+rascal>import inheritance::InitialWork;
+ok
+
+rascal>runInitialWork();
+Declaration statement:
+declarationStatement(
+    variables
+    (
+        simpleType(
+            simpleName("SubtypeParent")[@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1212,13,<50,3>,<50,16>),
+            @typ=class(|java+class:///edu/uva/analysis/samples/SubtypeParent|,[]),
+            @decl=|java+class:///edu/uva/analysis/samples/SubtypeParent|])
+        ,
+        [variable(
+            "anSP",
+            0,
+            newObject
+                (simpleType(simpleName("SubtypeChild")
+                    [ 
+                    @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1237,12,<50,28>,<50,40>),
+                    @typ=class(|java+class:///edu/uva/analysis/samples/SubtypeChild|,[]),
+                    @decl=|java+class:///edu/uva/analysis/samples/SubtypeChild|]),[])
+                    [
+                        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1233,18,<50,24>,<50,42>),
+                        @typ=class(|java+class:///edu/uva/analysis/samples/SubtypeChild|,[]),
+                        @decl=|java+constructor:///edu/uva/analysis/samples/SubtypeChild/SubtypeChild()|
+                    ])
+            [@decl=|java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP|,
+            @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1226,25,<50,17>,<50,42>),
+            @typ=class(|java+class:///edu/uva/analysis/samples/SubtypeParent|,[])]
+        ])
+    )
+
+
+
+
+Declaration: variables(simpleType(simpleName("SubtypeParent")[@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1212,13,<50,3>,<50,16>),@typ=class(|java+class:///edu/uva/analysis/samples/SubtypeParent|,[]),@decl=|java+class:///edu/uva/analysis/samples/SubtypeParent|]),[
+    variable("anSP",0,newObject(simpleType(simpleName("SubtypeChild")[      
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1237,12,<50,28>,<50,40>),
+        @typ=class(|java+class:///edu/uva/analysis/samples/SubtypeChild|,[]),
+        @decl=|java+class:///edu/uva/analysis/samples/SubtypeChild|]),[])[@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1233,18,<50,24>,<50,42>),
+        @typ=class(|java+class:///edu/uva/analysis/samples/SubtypeChild|,[]),
+        @decl=|java+constructor:///edu/uva/analysis/samples/SubtypeChild/SubtypeChild()|]
+    )
+    
+    [@decl=|java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP|,@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1226,25,<50,17>,<50,42>),@typ=class(|java+class:///edu/uva/analysis/samples/SubtypeParent|,[])]])
+ok
+
+rascal>
+
+rascal>import inheritance::InitialWork;
+ok
+
+rascal>runInitialType();
+|stdin:///|(0,14,<1,0>,<1,14>): Undeclared variable: runInitialType
+☞ Advice
+
+rascal>runInitialWork();
+m1: Variables! variables(simpleType(simpleName("SubtypeParent")[@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1261,13,<52,3>,<52,16>),@typ=class(|java+class:///edu/uva/analysis/samples/SubtypeParent|,[]),@decl=|java+class:///edu/uva/analysis/samples/SubtypeParent|]),
+
+[variable("anSP",0,
+    methodCall(false,"getMeAChild",[])[
+        @typ=class(|java+class:///edu/uva/analysis/samples/SubtypeChild|,[]),@decl=|java+method:///edu/uva/analysis/samples/SubtypeRunner/getMeAChild()|,@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1282,13,<52,24>,<52,37>)]
+    )[@decl=|java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP|,@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1275,20,<52,17>,<52,37>),@typ=class(|java+class:///edu/uva/analysis/samples/SubtypeParent|,[])]]));
+            
+
+
+
+println(Type is : simpleType(simpleName("SubtypeParent")[@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1261,13,<52,3>,<52,16>),@typ=class(|java+class:///edu/uva/analysis/samples/SubtypeParent|,[]),@decl=|java+class:///edu/uva/analysis/samples/SubtypeParent|])
+Name of the variable: |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP|
+ok
+
+rascal>
+
+simpleType
+        (simpleName("SubtypeParent")
+            [
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/SubtypeRunner.java|(1382,13,<57,3>,<57,16>),
+                @typ=class(|java+class:///edu/uva/analysis/samples/SubtypeParent|,[]),
+                @decl=|java+class:///edu/uva/analysis/samples/SubtypeParent|
+            ]
+        )

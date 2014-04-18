@@ -1,0 +1,29 @@
+***********************************************************************************************************
+extends annotation
+**********************************************************************************************************
+Extends relation (from loc, to loc): {
+  <|java+class:///edu/uva/analysis/samples/C|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+class:///edu/uva/analysis/samples/D|,|java+class:///edu/uva/analysis/samples/P|>
+}
+
+
+
+
+*****************************************************************************************************
+implements annotation 
+*****************************************************************************************************
+
+
+rascal>gModels[0]@implements;
+rel[loc from,loc to]: {
+  <|java+class:///com/google/common/hash/BloomFilter|,|java+interface:///java/io/Serializable|>,
+  <|java+class:///com/google/common/cache/LocalCache/ManualSerializationProxy|,|java+interface:///java/io/Serializable|>,
+  <|java+class:///com/google/common/collect/Synchronized/SynchronizedSortedMap|,|java+interface:///java/util/SortedMap|>,
+  <|java+class:///com/google/common/io/LittleEndianDataOutputStream|,|java+interface:///java/io/DataOutput|>,
+  <|java+class:///com/google/common/primitives/Floats/FloatArrayAsList|,|java+interface:///java/io/Serializable|>,
+  <|java+class:///com/google/common/primitives/Shorts/ShortArrayAsList|,|java+interface:///java/io/Serializable|>,
+  <|java+class:///com/google/common/collect/ImmutableBiMap|,|java+interface:///com/google/common/collect/BiMap|>,
+  <|java+class:///com/google/common/cache/LocalCache/SoftValueReference|,|java+interface:///com/google/common/cache/LocalCache/ValueReference|>,
+  ......
+  ......
+  ......

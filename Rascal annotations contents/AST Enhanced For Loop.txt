@@ -1,0 +1,139 @@
+*************************** Enhanced for loop with array: *****************************************
+
+foreach(
+  parameter(
+    simpleType(simpleName("Shape")[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(548,5,<22,7>,<22,12>),
+        @typ=class(
+          |java+class:///edu/uva/analysis/gensamples/Shape|,
+          []),
+        @decl=|java+class:///edu/uva/analysis/gensamples/Shape|
+      ]),
+    "aShape",
+    0)[
+    @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(548,12,<22,7>,<22,19>),
+    @decl=|java+variable:///edu/uva/analysis/samples/InterfaceRunner/enhancedForSample()/scope(0)/aShape|,
+    @typ=class(
+      |java+class:///edu/uva/analysis/gensamples/Shape|,
+      [])
+  ],
+  simpleName("triangleArray")[
+    @decl=|java+variable:///edu/uva/analysis/samples/InterfaceRunner/enhancedForSample()/triangleArray|,
+    @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(563,13,<22,22>,<22,35>),
+    @typ=array(
+      class(
+        |java+class:///edu/uva/analysis/gensamples/Triangle|,
+        []),
+      1)
+  ],
+  block([expressionStatement(methodCall(
+          false,
+          simpleName("aShape")[
+            @decl=|java+variable:///edu/uva/analysis/samples/InterfaceRunner/enhancedForSample()/scope(0)/aShape|,
+            @typ=class(
+              |java+class:///edu/uva/analysis/gensamples/Shape|,
+              []),
+            @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(584,6,<23,3>,<23,9>)
+          ],
+          "draw",
+          [simpleName("aCanvas")[
+              @typ=class(
+                |java+class:///edu/uva/analysis/gensamples/Canvas|,
+                []),
+              @decl=|java+variable:///edu/uva/analysis/samples/InterfaceRunner/enhancedForSample()/aCanvas|,
+              @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(596,7,<23,15>,<23,22>)
+            ]])[
+          @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(584,20,<23,3>,<23,23>),
+          @typ=void(),
+          @decl=|java+method:///edu/uva/analysis/gensamples/Shape/draw(edu.uva.analysis.gensamples.Canvas)|
+        ])[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(584,21,<23,3>,<23,24>)
+      ]])[
+    @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(578,32,<22,37>,<24,3>)
+  ])[
+  @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(543,67,<22,2>,<24,3>)
+]
+
+
+
+******************************** Enhanced for loop with List *********************************************
+
+foreach(
+  parameter(
+    simpleType(simpleName("Shape")[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(654,5,<26,7>,<26,12>),
+        @typ=class(
+          |java+class:///edu/uva/analysis/gensamples/Shape|,
+          []),
+        @decl=|java+class:///edu/uva/analysis/gensamples/Shape|
+      ]),
+    "aShape",
+    0)[
+    @decl=|java+variable:///edu/uva/analysis/samples/InterfaceRunner/secondEnhancedForSample()/scope(0)/aShape|,
+    @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(654,12,<26,7>,<26,19>),
+    @typ=class(
+      |java+class:///edu/uva/analysis/gensamples/Shape|,
+      [])
+  ],
+  simpleName("triangleList")[
+    @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(669,12,<26,22>,<26,34>),
+    @decl=|java+variable:///edu/uva/analysis/samples/InterfaceRunner/secondEnhancedForSample()/triangleList|,
+    @typ=interface(
+      |java+interface:///java/util/List|,
+      [class(
+          |java+class:///edu/uva/analysis/gensamples/Triangle|,
+          [])])
+  ],
+  block([expressionStatement(methodCall(
+          false,
+          simpleName("aShape")[
+            @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(689,6,<27,3>,<27,9>),
+            @decl=|java+variable:///edu/uva/analysis/samples/InterfaceRunner/secondEnhancedForSample()/scope(0)/aShape|,
+            @typ=class(
+              |java+class:///edu/uva/analysis/gensamples/Shape|,
+              [])
+          ],
+          "draw",
+          [simpleName("aCanvas")[
+              @decl=|java+variable:///edu/uva/analysis/samples/InterfaceRunner/secondEnhancedForSample()/aCanvas|,
+              @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(701,7,<27,15>,<27,22>),
+              @typ=class(
+                |java+class:///edu/uva/analysis/gensamples/Canvas|,
+                [])
+            ]])[
+          @typ=void(),
+          @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(689,20,<27,3>,<27,23>),
+          @decl=|java+method:///edu/uva/analysis/gensamples/Shape/draw(edu.uva.analysis.gensamples.Canvas)|
+        ])[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(689,21,<27,3>,<27,24>)
+      ]])[
+    @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(683,32,<26,36>,<28,3>)
+  ])[
+  @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/InterfaceRunner.java|(649,66,<26,2>,<28,3>)
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

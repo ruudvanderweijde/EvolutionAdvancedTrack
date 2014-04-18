@@ -1,0 +1,48 @@
+<|java+variable:///edu/uva/analysis/samples/N/extReuse()/aCGlow|,|java+class:///edu/uva/analysis/samples/C|>
+
+{
+  <|java+variable:///edu/uva/analysis/samples/N/extReuse()/aCGlow|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+variable:///edu/uva/analysis/samples/N/extReuse()/aCGlow|,|java+class:///edu/uva/analysis/samples/P|>
+}
+
+ <|java+variable:///edu/uva/analysis/samples/H/h()/aP|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+variable:///edu/uva/analysis/samples/H/h()/aC|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+variable:///edu/uva/analysis/samples/H/j()/pArray|,|java+array:///edu/uva/analysis/samples/P%5B%5D|>,
+  <|java+method:///edu/uva/analysis/samples/P/p()|,|java+primitiveType:///void|>,
+  <|java+method:///edu/uva/analysis/samples/P/q()|,|java+primitiveType:///void|>,
+  <|java+variable:///edu/uva/analysis/samples/H/j()/cArray|,|java+array:///edu/uva/analysis/samples/C%5B%5D|>,
+  <|java+variable:///edu/uva/analysis/samples/C/e()/aC|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+method:///edu/uva/analysis/samples/H/j()|,|java+array:///edu/uva/analysis/samples/C%5B%5D|>,
+  <|java+method:///edu/uva/analysis/samples/M/m(edu.uva.analysis.samples.P)|,|java+primitiveType:///void|>,
+  <|java+parameter:///edu/uva/analysis/samples/M/m(edu.uva.analysis.samples.P)/aP|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+variable:///edu/uva/analysis/samples/N/useReuse()/aC|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+method:///edu/uva/analysis/samples/H/h()|,|java+primitiveType:///void|>,
+  <|java+method:///edu/uva/analysis/samples/H/j()|,|java+primitiveType:///void|>,
+  <|java+method:///edu/uva/analysis/samples/C/e()|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+method:///edu/uva/analysis/samples/N/useSubtype()|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+variable:///edu/uva/analysis/samples/N/useSubtype()/aD|,|java+class:///edu/uva/analysis/samples/D|>,
+  <|java+method:///edu/uva/analysis/samples/H/j()|,|java+array:///edu/uva/analysis/samples/P%5B%5D|>,
+  <|java+method:///edu/uva/analysis/samples/N/useSubtype()|,|java+class:///edu/uva/analysis/samples/D|>,
+  <|java+method:///edu/uva/analysis/samples/D/q()|,|java+primitiveType:///void|>,
+  <|java+method:///edu/uva/analysis/samples/C/c()|,|java+primitiveType:///void|>,
+  <|java+method:///edu/uva/analysis/samples/N/useReuse()|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+method:///edu/uva/analysis/samples/N/useSubtype()|,|java+primitiveType:///void|>,
+  <|java+method:///edu/uva/analysis/samples/C/e()|,|java+primitiveType:///void|>,
+  <|java+method:///edu/uva/analysis/samples/H/j()|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+method:///edu/uva/analysis/samples/H/h()|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+variable:///edu/uva/analysis/samples/H/j()/cArray|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+method:///edu/uva/analysis/samples/N/useSubtype()|,|java+class:///edu/uva/analysis/samples/M|>,
+  <|java+method:///edu/uva/analysis/samples/C/e()|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+method:///edu/uva/analysis/samples/C/c()|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+method:///edu/uva/analysis/samples/N/useSubtype()|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+method:///edu/uva/analysis/samples/N/useReuse()|,|java+primitiveType:///void|>,
+  <|java+variable:///edu/uva/analysis/samples/N/useSubtype()/aM|,|java+class:///edu/uva/analysis/samples/M|>,
+  <|java+method:///edu/uva/analysis/samples/H/h()|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+variable:///edu/uva/analysis/samples/N/useSubtype()/aC|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+method:///edu/uva/analysis/samples/N/useReuse()|,|java+class:///edu/uva/analysis/samples/C|>,
+  <|java+class:///edu/uva/analysis/samples/C|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+class:///edu/uva/analysis/samples/D|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+method:///edu/uva/analysis/samples/M/m(edu.uva.analysis.samples.P)|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+method:///edu/uva/analysis/samples/P/p()|,|java+class:///edu/uva/analysis/samples/P|>,
+  <|java+variable:///edu/uva/analysis/samples/H/j()/pArray|,|java+class:///edu/uva/analysis/samples/P|>
+}

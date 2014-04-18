@@ -1,0 +1,35 @@
+rascal>import inheritance::InitialWork;
+ok
+
+rascal>runInitialWork();
+Qualified name. Qualifier: ----------------------
+simpleName("aCGlow")[
+  @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(529,6,<29,10>,<29,16>),
+  @typ=class(
+    |java+class:///edu/uva/analysis/samples/C|,
+    []),
+  @decl=|java+variable:///edu/uva/analysis/samples/N/extReuse2222()/aCGlow|
+]
+Expression: 
+simpleName("intFieldParent")[
+  @typ=int(),
+  @decl=|java+field:///edu/uva/analysis/samples/P/intFieldParent|,
+  @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(536,14,<29,17>,<29,31>)
+]
+Qualified name. Qualifier: ----------------------
+simpleName("aCGlow")[
+  @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(581,6,<30,2>,<30,8>),
+  @typ=class(
+    |java+class:///edu/uva/analysis/samples/C|,
+    []),
+  @decl=|java+variable:///edu/uva/analysis/samples/N/extReuse2222()/aCGlow|
+]
+Expression: 
+simpleName("intFieldParent")[
+  @typ=int(),
+  @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(588,14,<30,9>,<30,23>),
+  @decl=|java+field:///edu/uva/analysis/samples/P/intFieldParent|
+]
+ok
+
+rascal>

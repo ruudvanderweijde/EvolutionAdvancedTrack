@@ -1,0 +1,42 @@
+constructor(
+    "Sub1",
+    [],
+    [],
+    block(
+        [
+        constructorCall(true,[])
+            [@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/Sub1.java|(88,8,<6,2>,<6,10>)]
+        ]
+        )
+    [@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/Sub1.java|(83,17,<5,8>,<7,2>)]
+)
+
+
+
+Method AST is: 
+constructor(
+    "Sub1",
+    [   parameter(int(),"i",0)
+        [   @typ=int(),
+            @decl=|java+parameter:///edu/uva/analysis/samples/Sub1/Sub1(int)/i|,
+            @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/Sub1.java|(111,5,<9,6>,<9,11>)
+        ]
+    ],
+    [],
+    block
+        (
+            [constructorCall
+                (true,
+                 [simpleName("i")
+                    [@typ=int(),@decl=|java+parameter:///edu/uva/analysis/samples/Sub1/Sub1(int)/i|,
+                        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/Sub1.java|(129,1,<10,8>,<10,9>)
+                    ]
+                 ]
+                )
+                
+                [@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/Sub1.java|(123,9,<10,2>,<10,11>)]
+            ]
+        )
+    [@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/Sub1.java|(118,18,<9,13>,<11,2>)])
+ok
+

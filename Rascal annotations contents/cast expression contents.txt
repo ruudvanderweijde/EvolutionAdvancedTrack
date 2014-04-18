@@ -1,0 +1,15 @@
+cast(
+    simpleType(
+        simpleName("P")[
+            @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/H.java|(401,1,<30,11>,<30,12>),
+            @typ=class(|java+class:///edu/uva/analysis/samples/P|,[]),
+            @decl=|java+class:///edu/uva/analysis/samples/P|
+            ]
+    ),
+    
+    simpleName("myC")[
+        @decl=|java+variable:///edu/uva/analysis/samples/H/castToP()/myC|,
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/H.java|(403,3,<30,13>,<30,16>),
+        @typ=class(|java+class:///edu/uva/analysis/samples/C|,[])
+    ]
+)

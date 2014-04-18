@@ -1,0 +1,41 @@
+When analyzing the following Java code:
+
+public class UseTwo <T, X> {    // after type erasure UseTwo
+    
+    T one;
+    X two;
+    
+    UseTwo(T one, X two) {
+        this.one = one;
+        this.two = two;
+    }
+    
+    T getT() { return one; }
+    X getX() { return two; }
+    
+    void doSomething(T one, X two) {
+        
+    }
+
+    void runIt() {
+        UseTwo<String, Integer> anotherTwo;
+        anotherTwo = new UseTwo<String , Integer> (new String(), new Integer(4));
+        
+        anotherTwo.doSomething("xyz", new Integer(5));
+    }
+
+}
+
+in AST in Rascal, I have the following:
+
+For method call, m1:\methodCall(_,_,_,_), m1@decl gives correctly:
+ |java+method:///edu/uva/analysis/gensamples/UseTwo/doSomething(T,X)|
+
+However for the n1:\newObject(_,_,_), n1@decl gives incorrectly:
+|java+constructor:///edu/uva/analysis/gensamples/UseTwo/UseTwo%3CString,Integer%3E(T,X)|
+
+instead, it should give back the constructor call with type parameters only:
+|java+constructor:///edu/uva/analysis/gensamples/UseTwo/UseTwo(T,X)|
+
+
+ 

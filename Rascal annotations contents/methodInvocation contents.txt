@@ -1,0 +1,26 @@
+Method Invocation:
+----------------------------------------------------------------------------------------------------------------------------
+  <|java+method:///edu/uva/analysis/samples/M/m(edu.uva.analysis.samples.P)|,|java+method:///edu/uva/analysis/samples/P/p()|>,
+  <|java+variable:///edu/uva/analysis/samples/N/useReuse()/aC|,|java+constructor:///edu/uva/analysis/samples/C/C()|>,
+  <|java+variable:///edu/uva/analysis/samples/N/useSubtype()/aM|,|java+constructor:///edu/uva/analysis/samples/M/M()|>,
+  <|java+method:///edu/uva/analysis/samples/C/c()|,|java+method:///edu/uva/analysis/samples/P/q()|>,
+  <|java+variable:///edu/uva/analysis/samples/H/h()/aC|,|java+constructor:///edu/uva/analysis/samples/C/C()|>,
+  <|java+method:///edu/uva/analysis/samples/C/e()|,|java+method:///edu/uva/analysis/samples/P/q()|>,
+  <|java+method:///edu/uva/analysis/samples/N/useSubtype()|,|java+method:///edu/uva/analysis/samples/P/p()|>,
+  <|java+variable:///edu/uva/analysis/samples/N/useSubtype()/aD|,|java+constructor:///edu/uva/analysis/samples/D/D()|>,
+  <|java+method:///edu/uva/analysis/samples/H/j()|,|java+constructor:///edu/uva/analysis/samples/C/C()|>,
+  <|java+variable:///edu/uva/analysis/samples/N/useSubtype()/aC|,|java+constructor:///edu/uva/analysis/samples/C/C()|>,
+  <|java+method:///edu/uva/analysis/samples/N/useSubtype()|,|java+method:///edu/uva/analysis/samples/M/m(edu.uva.analysis.samples.P)|>,
+  
+  
+  ********************************************************************************************************************
+  <|java+variable:///edu/uva/analysis/samples/H/returnP()/aC|,|java+constructor:///edu/uva/analysis/samples/C/C()|>,
+  ********************************************************************************************************************
+  
+  
+  
+  <|java+method:///edu/uva/analysis/samples/P/p()|,|java+method:///edu/uva/analysis/samples/P/q()|>,
+  <|java+variable:///edu/uva/analysis/samples/C/e()/aC|,|java+constructor:///edu/uva/analysis/samples/C/C()|>,
+  <|java+method:///edu/uva/analysis/samples/N/useReuse()|,|java+method:///edu/uva/analysis/samples/P/p()|>,
+  <|java+method:///edu/uva/analysis/samples/H/h()|,|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|>
+}

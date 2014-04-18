@@ -1,0 +1,261 @@
+method(
+  void(),
+  "runGenerics",
+  [],
+  [],
+  block([
+  
+  
+// List <String> myList = new ArrayList<String> ();  
+    
+      declarationStatement(variables(
+          parameterizedType(simpleType(simpleName("List")[
+                @typ=interface(
+                  |java+interface:///java/util/List|,
+                  [class(
+                      |java+class:///java/lang/String|,
+                      [])]),
+                @decl=|java+interface:///java/util/List|,
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(175,4,<10,2>,<10,6>)
+              ])),
+          [variable(
+              "myList",
+              0,
+              newObject(
+                parameterizedType(simpleType(simpleName("ArrayList")[
+                      @typ=class(
+                        |java+class:///java/util/ArrayList|,
+                        [class(
+                            |java+class:///java/lang/String|,
+                            [])]),
+                      @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(202,9,<10,29>,<10,38>),
+                      @decl=|java+class:///java/util/ArrayList|
+                    ])),
+                [])[
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(198,24,<10,25>,<10,49>),
+                @typ=class(
+                  |java+class:///java/util/ArrayList|,
+                  [class(
+                      |java+class:///java/lang/String|,
+                      [])]),
+                @decl=|java+constructor:///java/util/ArrayList/ArrayList%3CString%3E()|
+              ])[
+              @typ=interface(
+                |java+interface:///java/util/List|,
+                [class(
+                    |java+class:///java/lang/String|,
+                    [])]),
+              @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(189,33,<10,16>,<10,49>),
+              @decl=|java+variable:///edu/uva/analysis/gensamples/GenericRunner/runGenerics()/myList|
+            ]]))[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(175,89,<10,2>,<10,91>)
+      ],
+
+
+
+// Map.Entry<String, Long> myMapEntry; 
+
+      declarationStatement(variables(
+          parameterizedType(simpleType(qualifiedName(
+                simpleName("Map")[
+                  @decl=|java+interface:///java/util/Map|,
+                  @typ=interface(
+                    |java+interface:///java/util/Map|,
+                    []),
+                  @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(268,3,<11,2>,<11,5>)
+                ],
+                simpleName("Entry")[
+                  @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(272,5,<11,6>,<11,11>),
+                  @typ=interface(
+                    |java+interface:///java/util/Map/Entry|,
+                    [
+                      class(
+                        |java+class:///java/lang/String|,
+                        []),
+                      class(
+                        |java+class:///java/lang/Long|,
+                        [])
+                    ]),
+                  @decl=|java+interface:///java/util/Map/Entry|
+                ])[
+                @typ=interface(
+                  |java+interface:///java/util/Map/Entry|,
+                  [
+                    class(
+                      |java+class:///java/lang/String|,
+                      []),
+                    class(
+                      |java+class:///java/lang/Long|,
+                      [])
+                  ]),
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(268,9,<11,2>,<11,11>),
+                @decl=|java+interface:///java/util/Map/Entry|
+              ])),
+          [variable("myMapEntry",0)[
+              @typ=interface(
+                |java+interface:///java/util/Map/Entry|,
+                [
+                  class(
+                    |java+class:///java/lang/String|,
+                    []),
+                  class(
+                    |java+class:///java/lang/Long|,
+                    [])
+                ]),
+              @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(292,10,<11,26>,<11,36>),
+              @decl=|java+variable:///edu/uva/analysis/gensamples/GenericRunner/runGenerics()/myMapEntry|
+            ]]))[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(268,70,<11,2>,<11,72>)
+      ],
+      
+      
+      
+      
+      
+//    List<? super Rectangle> myShapeList = new ArrayList<Shape> (); // after type erasure List and ArrayList
+
+      declarationStatement(variables(
+          parameterizedType(simpleType(simpleName("List")[
+                @typ=interface(
+                  |java+interface:///java/util/List|,
+                  [wildcard(extends(class(
+                          |java+class:///edu/uva/analysis/gensamples/Rectangle|,
+                          [])))]),
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(342,4,<12,2>,<12,6>),
+                @decl=|java+interface:///java/util/List|
+              ])),
+          [variable(
+              "myShapeList",
+              0,
+              newObject(
+                parameterizedType(simpleType(simpleName("ArrayList")[
+                      @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(384,9,<12,44>,<12,53>),
+                      @decl=|java+class:///java/util/ArrayList|,
+                      @typ=class(
+                        |java+class:///java/util/ArrayList|,
+                        [class(
+                            |java+class:///edu/uva/analysis/gensamples/Shape|,
+                            [])])
+                    ])),
+                [])[
+                @typ=class(
+                  |java+class:///java/util/ArrayList|,
+                  [class(
+                      |java+class:///edu/uva/analysis/gensamples/Shape|,
+                      [])]),
+                @decl=|java+constructor:///java/util/ArrayList/ArrayList%3CShape%3E()|,
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(380,23,<12,40>,<12,63>)
+              ])[
+              @typ=interface(
+                |java+interface:///java/util/List|,
+                [wildcard(extends(class(
+                        |java+class:///edu/uva/analysis/gensamples/Rectangle|,
+                        [])))]),
+              @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(366,37,<12,26>,<12,63>),
+              @decl=|java+variable:///edu/uva/analysis/gensamples/GenericRunner/runGenerics()/myShapeList|
+            ]]))[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(342,103,<12,2>,<12,105>)
+      ],
+
+
+
+      
+//    List<?> myGeneralList = new ArrayList<Rectangle>(); 
+
+      declarationStatement(variables(
+          parameterizedType(simpleType(simpleName("List")[
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(449,4,<13,2>,<13,6>),
+                @decl=|java+interface:///java/util/List|,
+                @typ=interface(
+                  |java+interface:///java/util/List|,
+                  [wildcard(unbounded())])
+              ])),
+          [variable(
+              "myGeneralList",
+              0,
+              newObject(
+                parameterizedType(simpleType(simpleName("ArrayList")[
+                      @decl=|java+class:///java/util/ArrayList|,
+                      @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(477,9,<13,30>,<13,39>),
+                      @typ=class(
+                        |java+class:///java/util/ArrayList|,
+                        [class(
+                            |java+class:///edu/uva/analysis/gensamples/Rectangle|,
+                            [])])
+                    ])),
+                [])[
+                @decl=|java+constructor:///java/util/ArrayList/ArrayList%3CRectangle%3E()|,
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(473,26,<13,26>,<13,52>),
+                @typ=class(
+                  |java+class:///java/util/ArrayList|,
+                  [class(
+                      |java+class:///edu/uva/analysis/gensamples/Rectangle|,
+                      [])])
+              ])[
+              @decl=|java+variable:///edu/uva/analysis/gensamples/GenericRunner/runGenerics()/myGeneralList|,
+              @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(457,42,<13,10>,<13,52>),
+              @typ=interface(
+                |java+interface:///java/util/List|,
+                [wildcard(unbounded())])
+            ]]))[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(449,93,<13,2>,<13,95>)
+      ],
+  
+  
+      
+      
+//    List<? extends Shape> myCircleList = new ArrayList<Circle> ();    // after type erasure List and ArrayList
+      
+      declarationStatement(variables(
+          parameterizedType(simpleType(simpleName("List")[
+                @typ=interface(
+                  |java+interface:///java/util/List|,
+                  [wildcard(extends(class(
+                          |java+class:///edu/uva/analysis/gensamples/Shape|,
+                          [])))]),
+                @decl=|java+interface:///java/util/List|,
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(546,4,<14,2>,<14,6>)
+              ])),
+          [variable(
+              "myCircleList",
+              0,
+              newObject(
+                parameterizedType(simpleType(simpleName("ArrayList")[
+                      @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(587,9,<14,43>,<14,52>),
+                      @decl=|java+class:///java/util/ArrayList|,
+                      @typ=class(
+                        |java+class:///java/util/ArrayList|,
+                        [class(
+                            |java+class:///edu/uva/analysis/gensamples/Circle|,
+                            [])])
+                    ])),
+                [])[
+                @decl=|java+constructor:///java/util/ArrayList/ArrayList%3CCircle%3E()|,
+                @typ=class(
+                  |java+class:///java/util/ArrayList|,
+                  [class(
+                      |java+class:///edu/uva/analysis/gensamples/Circle|,
+                      [])]),
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(583,24,<14,39>,<14,63>)
+              ])[
+              @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(568,39,<14,24>,<14,63>),
+              @typ=interface(
+                |java+interface:///java/util/List|,
+                [wildcard(extends(class(
+                        |java+class:///edu/uva/analysis/gensamples/Shape|,
+                        [])))]),
+              @decl=|java+variable:///edu/uva/analysis/gensamples/GenericRunner/runGenerics()/myCircleList|
+            ]]))[
+        @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(546,104,<14,2>,<14,106>)
+      ]
+    ])[
+    @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(170,484,<9,20>,<15,2>)
+  ])[
+  @decl=|java+method:///edu/uva/analysis/gensamples/GenericRunner/runGenerics()|,
+  @src=|project://InheritanceSamples/src/edu/uva/analysis/gensamples/GenericRunner.java|(151,503,<9,1>,<15,2>),
+  @typ=method(
+    |java+method:///edu/uva/analysis/gensamples/GenericRunner/runGenerics()|,
+    [],
+    void(),
+    [])
+]

@@ -1,0 +1,23 @@
+
+
+Field access: {
+  <|java+method:///edu/uva/analysis/samples/ChildImplInterface/i1()|,|java+field:///java/lang/System/out|>,
+  <|java+method:///edu/uva/analysis/samples/G/c()|,|java+field:///java/lang/System/out|>,
+  <|java+method:///edu/uva/analysis/samples/G/e()|,|java+field:///java/lang/System/out|>,
+  <|java+initializer:///edu/uva/analysis/samples/StatChild$initializer2|,|java+field:///edu/uva/analysis/samples/StatChild/statChildDbl|>,
+  <|java+method:///edu/uva/analysis/gensamples/Rectangle/draw(edu.uva.analysis.gensamples.Canvas)|,|java+field:///java/lang/System/out|>,
+  <|java+initializer:///edu/uva/analysis/samples/StatChild$initializer1|,|java+field:///edu/uva/analysis/samples/StatParent/staticParentString|>,
+  <|java+method:///edu/uva/analysis/samples/ImplementInterface/i2()|,|java+field:///java/lang/System/out|>,
+  <|java+method:///edu/uva/analysis/samples/ImplementInterface/i1()|,|java+field:///java/lang/System/out|>,
+  <|java+initializer:///edu/uva/analysis/samples/StatChild$initializer2|,|java+field:///edu/uva/analysis/samples/StatParent/statParentsInt|>,
+  <|java+method:///edu/uva/analysis/gensamples/Circle/draw(edu.uva.analysis.gensamples.Canvas)|,|java+field:///java/lang/System/out|>,
+  <|java+method:///edu/uva/analysis/samples/ImplementAndExtend/i2()|,|java+field:///java/lang/System/out|>,
+  <|java+method:///edu/uva/analysis/samples/ImplementAndExtend/i1()|,|java+field:///java/lang/System/out|>,
+  <|java+method:///edu/uva/analysis/samples/C/e()|,|java+field:///edu/uva/analysis/samples/P/intFieldParent|>,
+  <|java+method:///edu/uva/analysis/samples/N/extReuse()|,|java+field:///edu/uva/analysis/samples/P/intFieldParent|>,
+  <|java+method:///edu/uva/analysis/samples/ImplementAndExtend/q()|,|java+field:///java/lang/System/out|>,
+  <|java+method:///edu/uva/analysis/samples/C/e()|,|java+field:///edu/uva/analysis/samples/C/dblFieldChild|>,
+  <|java+method:///edu/uva/analysis/samples/ImplementAndExtend/p()|,|java+field:///java/lang/System/out|>,
+  <|java+method:///edu/uva/analysis/samples/StatChild2/justAFieldAccess()|,|java+field:///edu/uva/analysis/samples/StatParent/statParentsInt|>
+}
+ok

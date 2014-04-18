@@ -1,0 +1,103 @@
+
+rascal>import inheritance::InitialWork;
+ok
+
+rascal>runInitialWork();
+m2: 
+    methodCall(
+        false,
+        simpleName("aC")[
+                        @typ=class(|java+class:///edu/uva/analysis/samples/C|,[]),
+                        @decl=|java+variable:///edu/uva/analysis/samples/N/extReuse()/aC|,
+                        @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(96,2,<6,2>,<6,4>)],
+        "p",
+        [])
+
+receiver: simpleName("aC")
+
+// m2: \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
+***************************************************************************************************************
+
+
+
+m2: 
+    methodCall(
+        false,
+        simpleName("aG")[   @decl=|java+variable:///edu/uva/analysis/samples/N/extReuse()/aG|,
+                            @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(146,2,<8,2>,<8,4>),
+                            @typ=class(|java+class:///edu/uva/analysis/samples/G|,[])
+                        ],
+        "p",
+        [])
+receiver: simpleName("aG")
+
+// m2: \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
+*****************************************************************************************
+
+m2: 
+    methodCall(
+    false,
+    simpleName("aG")[
+                    @decl=|java+variable:///edu/uva/analysis/samples/N/extReuse()/aG|,
+                    @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(209,2,<10,20>,<10,22>),
+                    @typ=class(|java+class:///edu/uva/analysis/samples/G|,[])],
+    "returnZero",
+    [])
+    
+receiver: simpleName("aG")
+// m2: \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
+
+*********************************************************************************************************
+
+    
+
+m2: methodCall(
+    false,
+    simpleName("aG")
+        [   @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(253,2,<11,6>,<11,8>),
+            @decl=|java+variable:///edu/uva/analysis/samples/N/extReuse()/aG|,
+            @typ=class(|java+class:///edu/uva/analysis/samples/G|,[])],
+    "returnOne",
+    []
+    )
+
+receiver: simpleName("aG")
+
+*********************************************************************************************************
+m2: methodCall(
+    false,
+    simpleName("aC")[
+                @src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(127,2,<7,2>,<7,4>),
+                @typ=class(|java+class:///edu/uva/analysis/samples/C|,[]),
+                @decl=|java+variable:///edu/uva/analysis/samples/N/extReuse()/aC|],
+    "returnTwo",
+    [
+        number("2")[@typ=int(),@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(140,1,<7,15>,<7,16>)]
+    ])
+
+
+receiver: simpleName("aC")
+
+
+
+*********************************************************************************************************
+m1: 
+    methodCall(
+    false,
+    "callMeWithInt",
+    [methodCall(
+        false,
+        simpleName("aG")[@decl=|java+variable:///edu/uva/analysis/samples/N/extReuse()/aG|,@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(209,2,<10,20>,<10,22>),@typ=class(
+            |java+class:///edu/uva/analysis/samples/G|,[])],
+            "returnZero",
+            []
+        )
+        [@typ=int(),@decl=|java+method:///edu/uva/analysis/samples/P/returnZero()|,@src=|project://InheritanceSamples/src/edu/uva/analysis/samples/N.java|(209,15,<10,20>,<10,35>)]]
+    )
+    
+// m1: \methodCall(bool isSuper, str name, list[Expression] arguments)    
+// method calls without receiver are in m1, method calls with receiver are in m2 (e.g.: in aG.returnOne(), aG is the receiver). I am not interested in m1, because m1 type of calls are issued for this (e.g. callMeWithInt()) and therefore can not be instances of external reuse. I need a receiver.
+***********************************************************************************************    
+    
+
+

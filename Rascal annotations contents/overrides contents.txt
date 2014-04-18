@@ -1,0 +1,54 @@
+rascal>import inheritance::InitialWork;
+ok
+
+rascal>runInitialWork();
+Overrides:
+{
+  <|java+method:///edu/uva/analysis/samples/G/methodToOverride()|,|java+method:///edu/uva/analysis/samples/C/methodToOverride()|>,
+
+  <|java+method:///edu/uva/analysis/samples/G/methodToOverride()|,|java+method:///edu/uva/analysis/samples/P/methodToOverride()|>,
+
+
+  <|java+method:///edu/uva/analysis/gensamples/Rectangle/draw(edu.uva.analysis.gensamples.Canvas)|,|java+method:///edu/uva/analysis/gensamples/Shape/draw(edu.uva.analysis.gensamples.Canvas)|>,
+
+  <|java+method:///edu/uva/analysis/samples/ChildImplInterface/i1()|,|java+method:///edu/uva/analysis/samples/I/i1()|>,
+  <|java+method:///edu/uva/analysis/samples/ImplementAndExtend/i2()|,|java+method:///edu/uva/analysis/samples/I/i2()|>,
+
+  <|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|,|java+constructor:///edu/uva/analysis/samples/Super1/Super1(int)|>,
+
+  <|java+method:///edu/uva/analysis/samples/ByteSample/getBytes()|,|java+method:///edu/uva/analysis/samples/AbstractByteSample/getBytes()|>,
+
+  <|java+method:///edu/uva/analysis/samples/ChildImplInterface/i1()|,|java+method:///edu/uva/analysis/samples/ImplementInterface/i1()|>,
+  
+  <|java+method:///edu/uva/analysis/samples/ImplementAndExtend/q()|,|java+method:///edu/uva/analysis/samples/P/q()|>,
+  
+  <|java+method:///edu/uva/analysis/samples/G/c()|,|java+method:///edu/uva/analysis/samples/C/c()|>,
+  
+  <|java+method:///edu/uva/analysis/samples/ImplementInterface/i1()|,|java+method:///edu/uva/analysis/samples/I/i1()|>,
+  <|java+method:///edu/uva/analysis/samples/G/e()|,|java+method:///edu/uva/analysis/samples/C/e()|>,
+  
+  <|java+method:///edu/uva/analysis/samples/C/methodToOverride()|,|java+method:///edu/uva/analysis/samples/P/methodToOverride()|>,
+  
+  <|java+method:///edu/uva/analysis/gensamples/Triangle/draw(edu.uva.analysis.gensamples.Canvas)|,|java+method:///edu/uva/analysis/gensamples/Shape/draw(edu.uva.analysis.gensamples.Canvas)|>,
+  
+  <|java+method:///edu/uva/analysis/samples/ResourceBundleChild/handleGetObject(java.lang.String)|,|java+method:///java/util/ResourceBundle/handleGetObject(java.lang.String)|>,
+  
+  <|java+method:///edu/uva/analysis/samples/ResourceBundleChild/getKeys()|,|java+method:///java/util/ResourceBundle/getKeys()|>,
+  
+  <|java+method:///edu/uva/analysis/samples/ImplementAndExtend/i1()|,|java+method:///edu/uva/analysis/samples/I/i1()|>,
+  
+  <|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1()|,|java+constructor:///edu/uva/analysis/samples/Super1/Super1()|>,
+  
+  <|java+method:///edu/uva/analysis/samples/ImplementAndExtend/p()|,|java+method:///edu/uva/analysis/samples/P/p()|>,
+  
+  <|java+method:///edu/uva/analysis/gensamples/Circle/draw(edu.uva.analysis.gensamples.Canvas)|,|java+method:///edu/uva/analysis/gensamples/Shape/draw(edu.uva.analysis.gensamples.Canvas)|>,
+  
+  <|java+constructor:///edu/uva/analysis/samples/N/N()|,|java+constructor:///java/lang/Object/Object()|>,
+  
+  <|java+method:///edu/uva/analysis/samples/D/q()|,|java+method:///edu/uva/analysis/samples/P/q()|>,
+  
+  <|java+method:///edu/uva/analysis/samples/ImplementInterface/i2()|,|java+method:///edu/uva/analysis/samples/I/i2()|>
+}
+ok
+
+rascal>
